@@ -3914,6 +3914,8 @@ function spriteImg(id, sizeClass, name) {
 
 // ---- API ----
 async function apiGet(url, { timeoutMs = 15000 } = {}) {
+  // Resolve root-relative URLs (from static dump) against POKEAPI origin
+  if (url.startsWith('/')) url = new URL(url, POKEAPI).href;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -3924,6 +3926,7 @@ async function apiGet(url, { timeoutMs = 15000 } = {}) {
     clearTimeout(t);
   }
 }
+
 
 async function loadNameList() {
   const cached = lsGet(CK.list);
