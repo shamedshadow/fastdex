@@ -12,6 +12,7 @@ A fast, modern Pokédex web app. Search 1,000+ Pokémon, analyze matchups, build
 - **Team Builder** — Draft up to 6 Pokémon, see shared weaknesses, combined STAB coverage, suggested partners, and a graded team score.
 - **Compare** — Stack two Pokémon side-by-side: stats, types, head-to-head matchup math.
 - **Type Search** — Find every Pokémon of a given type or dual-type combination.
+- **Egg Group Listing** - Click on an egg group to see all Pokémon within that group.
 - **Catch 'Em All** — Track your living dex (regular + shiny) with per-generation progress bars and stats. Import/export JSON.
 - **Nuzlocke Mode** — Run tracker with party/box/graveyard, encounter logging, level caps, rules enforcement, gym leader spoilers, and multi-run support. Covers every mainline game from Red/Blue to Scarlet/Violet.
 - **Damage Calculator** — Full Gen 6+ damage formula with natures, IVs/EVs, stat stages, abilities, items, weather, terrain, screens, and crits. Imports Pokémon directly from your Nuzlocke runs.
