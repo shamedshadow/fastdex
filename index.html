@@ -1184,6 +1184,44 @@
     max-height: 220px;
     overflow-y: auto;
   }
+  .nuzlocke-starter-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(127, 119, 221, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+  .nuzlocke-starter-picker-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nuzlocke-starter-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .nuzlocke-starter-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text);
+    text-transform: capitalize;
+  }
+  .nuzlocke-starter-chip:hover { border-color: var(--border-strong); }
+  .nuzlocke-starter-chip.active { border-color: var(--accent); background: rgba(127,119,221,0.15); }
+  .nuzlocke-starter-chip .sprite { width: 32px; height: 32px; image-rendering: pixelated; }
+  .nuzlocke-starter-hint { font-size: 11px; color: var(--text-muted); }
   .nuzlocke-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -2617,6 +2655,11 @@
                 <div class="suggestions nuzlocke-species-suggestions" id="nuzlocke-form-species-suggest"></div>
               </label>
             </div>
+            <div id="nuzlocke-starter-picker" class="nuzlocke-starter-picker" style="display:none">
+              <span class="nuzlocke-starter-picker-label">Pick your starter</span>
+              <div id="nuzlocke-starter-chips" class="nuzlocke-starter-chips"></div>
+              <span class="nuzlocke-starter-hint">Or type any species in the Species field above (for randomizers).</span>
+            </div>
             <div class="nuzlocke-form-row">
               <label class="nuzlocke-form-label nuzlocke-form-nick">Nickname
                 <input type="text" id="nuzlocke-form-nickname" placeholder="Optional" autocomplete="off">
@@ -3673,6 +3716,33 @@ const NUZLOCKE_LOCATIONS = {
   'brilliant-diamond-shining-pearl': ['Route 201','Lake Verity','Route 202','Sandgem Town','Route 203','Oreburgh Gate','Oreburgh Mine','Oreburgh City','Route 204','Ravaged Path','Jubilife City','Route 218','Route 219','Floaroma Town','Valley Windworks','Route 205','Eterna Forest','Eterna City','Route 211','Mt. Coronet','Route 206','Route 207','Route 208','Route 209','Lost Tower','Hearthome City','Amity Square','Route 212','Pastoria City','Great Marsh','Route 213','Route 214','Valor Lakefront','Route 215','Solaceon Town','Solaceon Ruins','Route 210','Celestic Town','Route 216','Route 217','Acuity Lakefront','Lake Acuity','Snowpoint City','Iron Island','Canalave City','Route 220','Route 221','Lake Valor','Pal Park','Sunyshore City','Route 222','Victory Road','Pokémon League','Route 223','Route 224','Route 225','Route 226','Route 227','Stark Mountain','Route 228','Route 229','Resort Area','Route 230','Fight Area','Survival Area','Turnback Cave','Spear Pillar','Sendoff Spring','Grand Underground'],
   'legends-arceus': ['Obsidian Fieldlands: Horseshoe Plains','Obsidian Fieldlands: Windswept Run','Obsidian Fieldlands: Deertrack Path','Obsidian Fieldlands: Worn Bridge','Obsidian Fieldlands: Aspiration Hill','Obsidian Fieldlands: Floaro Gardens','Obsidian Fieldlands: Grueling Grove','Obsidian Fieldlands: Grandtree Arena','Obsidian Fieldlands: Sandgem Flats','Obsidian Fieldlands: Ramanas Island','Obsidian Fieldlands: Nature\'s Pantry','Obsidian Fieldlands: Tidewater Dam','Crimson Mirelands','Cobalt Coastlands','Coronet Highlands','Alabaster Icelands','Jubilife Village'],
   'scarlet-violet': ['South Province (Area One)','South Province (Area Two)','South Province (Area Three)','South Province (Area Four)','South Province (Area Five)','South Province (Area Six)','West Province (Area One)','West Province (Area Two)','West Province (Area Three)','East Province (Area One)','East Province (Area Two)','East Province (Area Three)','North Province (Area One)','North Province (Area Two)','North Province (Area Three)','Asado Desert','Tagtree Thicket','Glaseado Mountain','Casseroya Lake','Socarrat Trail','Cortondo','Artazon','Levincia','Cascarrafa','Medali','Montenevera','Alfornada','Glaseado','Mesagoza','Zero Gate','Area Zero','Kitakami (Teal Mask)','Mossui Town','Paradise Barrens (Indigo Disk)','Blueberry Academy'],
+};
+
+// Default starter Pokémon and their starter-town location for each game.
+// Used to populate a quick-pick when the user logs their starter. Custom species (for
+// randomizers) can still be typed into the species field as normal.
+const NUZLOCKE_STARTERS = {
+  'red-blue':                        { location: 'Pallet Town',      mons: ['bulbasaur','charmander','squirtle'] },
+  'yellow':                          { location: 'Pallet Town',      mons: ['pikachu'] },
+  'gold-silver':                     { location: 'New Bark Town',    mons: ['chikorita','cyndaquil','totodile'] },
+  'crystal':                         { location: 'New Bark Town',    mons: ['chikorita','cyndaquil','totodile'] },
+  'ruby-sapphire':                   { location: 'Littleroot Town',  mons: ['treecko','torchic','mudkip'] },
+  'emerald':                         { location: 'Littleroot Town',  mons: ['treecko','torchic','mudkip'] },
+  'firered-leafgreen':               { location: 'Pallet Town',      mons: ['bulbasaur','charmander','squirtle'] },
+  'diamond-pearl':                   { location: 'Lake Verity',      mons: ['turtwig','chimchar','piplup'] },
+  'platinum':                        { location: 'Lake Verity',      mons: ['turtwig','chimchar','piplup'] },
+  'heartgold-soulsilver':            { location: 'New Bark Town',    mons: ['chikorita','cyndaquil','totodile'] },
+  'black-white':                     { location: 'Nuvema Town',      mons: ['snivy','tepig','oshawott'] },
+  'black-2-white-2':                 { location: 'Aspertia City',    mons: ['snivy','tepig','oshawott'] },
+  'x-y':                             { location: 'Aquacorde Town',   mons: ['chespin','fennekin','froakie'] },
+  'omega-ruby-alpha-sapphire':       { location: 'Littleroot Town',  mons: ['treecko','torchic','mudkip'] },
+  'sun-moon':                        { location: 'Iki Town',         mons: ['rowlet','litten','popplio'] },
+  'ultra-sun-ultra-moon':            { location: 'Iki Town',         mons: ['rowlet','litten','popplio'] },
+  'lets-go-pikachu-lets-go-eevee':   { location: 'Pallet Town',      mons: ['pikachu','eevee'] },
+  'sword-shield':                    { location: 'Slumbering Weald', mons: ['grookey','scorbunny','sobble'] },
+  'brilliant-diamond-shining-pearl': { location: 'Lake Verity',      mons: ['turtwig','chimchar','piplup'] },
+  'legends-arceus':                  { location: 'Jubilife Village', mons: ['rowlet','cyndaquil','oshawott'] },
+  'scarlet-violet':                  { location: 'Poco Path',        mons: ['sprigatito','fuecoco','quaxly'] },
 };
 
 const NUZLOCKE_METHODS = [
@@ -6587,15 +6657,44 @@ function renderNuzlockeLocationOptions() {
   const run = currentRun();
   const sel = document.getElementById('nuzlocke-form-location');
   const locs = NUZLOCKE_LOCATIONS[run.vg] || [];
-  sel.innerHTML = locs.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('')
+  const starter = NUZLOCKE_STARTERS[run.vg];
+  const starterOpt = starter
+    ? `<option value="__starter__">✨ Starter — ${escapeHtml(starter.location)}</option>`
+    : '';
+  sel.innerHTML = starterOpt
+    + locs.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('')
     + '<option value="__custom__">— custom (type below)…</option>'
     + '<option value="Gift">Gift</option>';
+  updateNuzlockeStarterPicker();
+}
+
+function updateNuzlockeStarterPicker() {
+  const picker = document.getElementById('nuzlocke-starter-picker');
+  if (!picker) return;
+  const run = currentRun();
+  const sel = document.getElementById('nuzlocke-form-location');
+  const starter = run && NUZLOCKE_STARTERS[run.vg];
+  if (!starter || sel.value !== '__starter__') {
+    picker.style.display = 'none';
+    return;
+  }
+  const speciesInput = document.getElementById('nuzlocke-form-species');
+  const resolved = speciesInput.dataset.resolved;
+  const chips = starter.mons.map(name => {
+    const id = NAME_TO_ID[name];
+    const sprite = id ? spriteImg(id, 'sprite-xs', name) : '';
+    const active = resolved === name ? ' active' : '';
+    return `<button type="button" class="nuzlocke-starter-chip${active}" data-starter="${escapeHtml(name)}">${sprite}<span>${escapeHtml(displayName(name))}</span></button>`;
+  }).join('');
+  document.getElementById('nuzlocke-starter-chips').innerHTML = chips;
+  picker.style.display = 'flex';
 }
 
 function renderNuzlockeMethodOptions() {
   const sel = document.getElementById('nuzlocke-form-method');
   sel.innerHTML = NUZLOCKE_METHODS.map(m => `<option value="${m.v}">${m.label}</option>`).join('');
-  sel.value = 'grass';
+  const locSel = document.getElementById('nuzlocke-form-location');
+  sel.value = locSel && locSel.value === '__starter__' ? 'gift' : 'grass';
 }
 
 function renderNuzlockeStatusOptions() {
@@ -7041,7 +7140,31 @@ function initNuzlocke() {
 
   // Add-encounter form.
   const speciesInput = document.getElementById('nuzlocke-form-species');
-  speciesInput.addEventListener('input', () => renderNuzlockeSpeciesSuggestions(speciesInput.value));
+  speciesInput.addEventListener('input', () => {
+    delete speciesInput.dataset.resolved;
+    renderNuzlockeSpeciesSuggestions(speciesInput.value);
+    updateNuzlockeStarterPicker();
+  });
+
+  // Starter location: show starter quick-pick and default method to Gift.
+  document.getElementById('nuzlocke-form-location').addEventListener('change', (e) => {
+    if (e.target.value === '__starter__') {
+      const methodSel = document.getElementById('nuzlocke-form-method');
+      if (methodSel && methodSel.value === 'grass') methodSel.value = 'gift';
+    }
+    updateNuzlockeStarterPicker();
+  });
+
+  // Starter chip picker: fill the species input.
+  document.getElementById('nuzlocke-starter-chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.nuzlocke-starter-chip');
+    if (!chip) return;
+    const name = chip.dataset.starter;
+    speciesInput.value = displayName(name);
+    speciesInput.dataset.resolved = name;
+    document.getElementById('nuzlocke-form-species-suggest').style.display = 'none';
+    updateNuzlockeStarterPicker();
+  });
   document.getElementById('nuzlocke-form-species-suggest').addEventListener('click', (e) => {
     const row = e.target.closest('.suggestion');
     if (!row) return;
@@ -7064,6 +7187,10 @@ function initNuzlocke() {
       location = prompt('Custom location:') || '';
       location = location.trim();
       if (!location) { flashButton(btn, '✕ No location', 'bad'); return; }
+    } else if (location === '__starter__') {
+      const run = currentRun();
+      const starter = run && NUZLOCKE_STARTERS[run.vg];
+      location = starter ? starter.location : 'Starter';
     }
     const method = document.getElementById('nuzlocke-form-method').value;
     const resolved = speciesInput.dataset.resolved;
