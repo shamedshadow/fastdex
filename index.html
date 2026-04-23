@@ -1260,6 +1260,122 @@
   .nuzlocke-entry-btn:hover { color: var(--text); border-color: var(--border-strong); }
   .nuzlocke-entry-btn.danger:hover { color: #e06060; border-color: #e06060; }
   .nuzlocke-entry-btn.good:hover { color: #52c270; border-color: #52c270; }
+  .nuzlocke-entry-btn.active { color: var(--text); border-color: var(--accent); background: rgba(127,119,221,0.15); }
+  .nuzlocke-entry-card[draggable="true"] { cursor: grab; }
+  .nuzlocke-entry-card.dragging { opacity: 0.4; }
+  .nuzlocke-entry-card.drop-target { border-color: var(--accent); background: rgba(127,119,221,0.12); }
+  .nuzlocke-entry-card.swap-source { border-color: #ffd447; box-shadow: 0 0 0 2px rgba(255,212,71,0.25); }
+  .nuzlocke-entry-card .nuzlocke-entry-actions button { cursor: pointer; }
+  .nuzlocke-card-grid.drop-zone-active { outline: 1px dashed var(--border-strong); outline-offset: -4px; border-radius: var(--radius-sm); }
+  .nuzlocke-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .nuzlocke-level-btn {
+    width: 22px; height: 22px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .nuzlocke-level-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .nuzlocke-level-input {
+    width: 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    text-align: center;
+    padding: 2px 2px;
+    -moz-appearance: textfield;
+  }
+  .nuzlocke-level-input::-webkit-outer-spin-button,
+  .nuzlocke-level-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .nuzlocke-entry-edit, .nuzlocke-entry-evolve {
+    margin-top: 6px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+  }
+  .nuzlocke-entry-edit label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nuzlocke-entry-edit input[type="text"],
+  .nuzlocke-entry-edit input[type="number"],
+  .nuzlocke-entry-edit select {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .nuzlocke-entry-edit-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .nuzlocke-entry-evolve-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .nuzlocke-evolve-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text);
+    min-width: 64px;
+  }
+  .nuzlocke-evolve-option:hover { border-color: var(--accent); }
+  .nuzlocke-evolve-option .sprite { width: 40px; height: 40px; image-rendering: pixelated; }
+  .nuzlocke-evolve-cond { font-size: 10px; color: var(--text-muted); text-align: center; max-width: 110px; }
+  .nuzlocke-evolve-empty { color: var(--text-muted); font-size: 11px; text-align: center; }
+  .nuzlocke-swap-banner {
+    background: rgba(255,212,71,0.12);
+    border: 1px solid rgba(255,212,71,0.4);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
   .nuzlocke-rule-row {
     display: flex;
     align-items: center;
@@ -2637,6 +2753,7 @@
         </div>
 
         <div id="nuzlocke-warnings" class="nuzlocke-warnings" style="display:none"></div>
+        <div id="nuzlocke-swap-banner" class="nuzlocke-swap-banner" style="display:none"></div>
 
         <div class="nuzlocke-section">
           <div class="nuzlocke-section-header">
@@ -6461,6 +6578,9 @@ function initCatchAll() {
 
 // ---- Nuzlocke ----
 let nuzlockeInit = false;
+let NUZLOCKE_EDIT_ID = null;
+let NUZLOCKE_EVOLVE_ID = null;
+let NUZLOCKE_SWAP_ID = null;
 const NUZLOCKE_PANELS = { rules: 'open', caps: 'open', leaders: 'closed' };
 (() => {
   const saved = lsGet(CK.nuzlockePanel);
@@ -6510,6 +6630,7 @@ function renderNuzlocke() {
   runBody.style.display = 'block';
   renderNuzlockeHeader();
   renderNuzlockeWarnings();
+  renderNuzlockeSwapBanner();
   renderNuzlockeLocationOptions();
   renderNuzlockeMethodOptions();
   renderNuzlockeStatusOptions();
@@ -6653,6 +6774,18 @@ function computeNuzlockeWarnings(run) {
   return warnings;
 }
 
+function renderNuzlockeSwapBanner() {
+  const el = document.getElementById('nuzlocke-swap-banner');
+  if (!el) return;
+  if (!NUZLOCKE_SWAP_ID) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const entry = nuzlockeFindEntry(NUZLOCKE_SWAP_ID);
+  if (!entry) { NUZLOCKE_SWAP_ID = null; el.style.display = 'none'; el.innerHTML = ''; return; }
+  const label = entry.nickname ? `${escapeHtml(entry.nickname)} (${escapeHtml(displayName(entry.name))})` : escapeHtml(displayName(entry.name));
+  el.innerHTML = `<span>⇄ Swap mode — pick another Pokémon's <strong>Swap</strong> button (or drag-drop) to swap with <strong>${label}</strong>. Same-section swaps reorder.</span>
+    <button type="button" class="nuzlocke-entry-btn" id="nuzlocke-swap-cancel">Cancel</button>`;
+  el.style.display = 'flex';
+}
+
 function renderNuzlockeLocationOptions() {
   const run = currentRun();
   const sel = document.getElementById('nuzlocke-form-location');
@@ -6723,32 +6856,290 @@ function nuzlockeEntryCard(e) {
   const img = id ? spriteImg(id, 'sprite-md', e.name) : '';
   const nick = e.nickname ? escapeHtml(e.nickname) : escapeHtml(displayName(e.name));
   const sub = e.nickname ? escapeHtml(displayName(e.name)) : '';
-  const lv = e.level ? `Lv ${e.level}` : '';
   const loc = e.location ? escapeHtml(e.location) : '';
   const methodLabel = (NUZLOCKE_METHODS.find(m => m.v === e.method) || {}).label || '';
   const notes = e.notes ? `<div class="nuzlocke-entry-meta" title="${escapeHtml(e.notes)}">📝 ${escapeHtml(e.notes)}</div>` : '';
   const status = e.status;
+  const isFainted = status === 'faint';
+  const lvl = e.level || 0;
+
+  const levelControls = `
+    <div class="nuzlocke-level" title="Level">
+      <button class="nuzlocke-level-btn" data-act="lvl-down" data-id="${e.id}" title="−1 level" type="button">−</button>
+      <input class="nuzlocke-level-input" type="number" min="0" max="100" value="${lvl}" data-act="lvl-set" data-id="${e.id}" title="Set level (0 = unknown)" aria-label="Level">
+      <button class="nuzlocke-level-btn" data-act="lvl-up" data-id="${e.id}" title="+1 level" type="button">+</button>
+    </div>`;
+
   const actions = [];
   if (status === 'party') {
-    actions.push(`<button class="nuzlocke-entry-btn" data-act="to-box" data-id="${e.id}" title="Move to box">⇪ Box</button>`);
-    actions.push(`<button class="nuzlocke-entry-btn danger" data-act="to-faint" data-id="${e.id}" title="Died in battle">✝ Faint</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn" data-act="to-box" data-id="${e.id}" title="Move to box" type="button">⇪ Box</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn danger" data-act="to-faint" data-id="${e.id}" title="Died in battle" type="button">✝ Faint</button>`);
   } else if (status === 'box') {
-    actions.push(`<button class="nuzlocke-entry-btn good" data-act="to-party" data-id="${e.id}" title="Send to party">↑ Party</button>`);
-    actions.push(`<button class="nuzlocke-entry-btn danger" data-act="to-faint" data-id="${e.id}" title="Died in battle">✝ Faint</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn good" data-act="to-party" data-id="${e.id}" title="Send to party" type="button">↑ Party</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn danger" data-act="to-faint" data-id="${e.id}" title="Died in battle" type="button">✝ Faint</button>`);
   } else {
-    actions.push(`<button class="nuzlocke-entry-btn good" data-act="to-box" data-id="${e.id}" title="Revive to box">↑ Revive</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn good" data-act="to-box" data-id="${e.id}" title="Revive to box" type="button">↑ Revive</button>`);
   }
-  actions.push(`<button class="nuzlocke-entry-btn" data-act="open" data-id="${e.id}" title="Open Pokédex page">View</button>`);
-  actions.push(`<button class="nuzlocke-entry-btn" data-act="edit" data-id="${e.id}" title="Edit entry">Edit</button>`);
-  actions.push(`<button class="nuzlocke-entry-btn danger" data-act="delete" data-id="${e.id}" title="Remove entry">×</button>`);
-  return `<div class="nuzlocke-entry-card${status === 'faint' ? ' fainted' : ''}" data-id="${e.id}">
+  if (!isFainted) {
+    const isSwap = NUZLOCKE_SWAP_ID === e.id;
+    actions.push(`<button class="nuzlocke-entry-btn" data-act="evolve" data-id="${e.id}" title="Evolve this Pokémon" type="button">⤴ Evolve</button>`);
+    actions.push(`<button class="nuzlocke-entry-btn${isSwap ? ' active' : ''}" data-act="swap" data-id="${e.id}" title="${isSwap ? 'Cancel swap' : 'Swap with another Pokémon'}" type="button">${isSwap ? '⇄ Cancel' : '⇄ Swap'}</button>`);
+  }
+  actions.push(`<button class="nuzlocke-entry-btn" data-act="open" data-id="${e.id}" title="Open Pokédex page" type="button">View</button>`);
+  const isEditing = NUZLOCKE_EDIT_ID === e.id;
+  actions.push(`<button class="nuzlocke-entry-btn${isEditing ? ' active' : ''}" data-act="edit" data-id="${e.id}" title="Edit entry" type="button">${isEditing ? '✕ Close' : '✎ Edit'}</button>`);
+  actions.push(`<button class="nuzlocke-entry-btn danger" data-act="delete" data-id="${e.id}" title="Remove entry" type="button">×</button>`);
+
+  const editPanel = isEditing ? renderNuzlockeEditPanel(e) : '';
+  const evolvePanel = NUZLOCKE_EVOLVE_ID === e.id ? renderNuzlockeEvolvePanelShell(e) : '';
+
+  const dragAttrs = isFainted ? '' : ' draggable="true"';
+  const swapClass = NUZLOCKE_SWAP_ID === e.id ? ' swap-source' : '';
+  return `<div class="nuzlocke-entry-card${isFainted ? ' fainted' : ''}${swapClass}" data-id="${e.id}"${dragAttrs}>
     ${img}
     <div class="nuzlocke-entry-nick">${nick}</div>
     ${sub ? `<div class="nuzlocke-entry-species">${sub}</div>` : ''}
-    <div class="nuzlocke-entry-meta">${[lv, loc, methodLabel].filter(Boolean).join(' · ')}</div>
+    <div class="nuzlocke-entry-meta">${[loc, methodLabel].filter(Boolean).join(' · ')}</div>
     ${notes}
+    <div class="nuzlocke-entry-meta">${levelControls}</div>
     <div class="nuzlocke-entry-actions">${actions.join('')}</div>
+    ${evolvePanel}
+    ${editPanel}
   </div>`;
+}
+
+function nuzlockeLocationOptionsForEntry(e) {
+  const run = currentRun();
+  const locations = (run && NUZLOCKE_LOCATIONS[run.vg]) || [];
+  const opts = ['<option value="">— None —</option>'];
+  let matched = false;
+  locations.forEach(L => {
+    const sel = L === e.location ? ' selected' : '';
+    if (sel) matched = true;
+    opts.push(`<option value="${escapeHtml(L)}"${sel}>${escapeHtml(L)}</option>`);
+  });
+  // Common extras the Add form supports.
+  ['Gift', 'Starter'].forEach(L => {
+    const sel = L === e.location ? ' selected' : '';
+    if (sel) matched = true;
+    opts.push(`<option value="${escapeHtml(L)}"${sel}>${escapeHtml(L)}</option>`);
+  });
+  if (e.location && !matched) {
+    opts.push(`<option value="${escapeHtml(e.location)}" selected>${escapeHtml(e.location)} (custom)</option>`);
+  }
+  return opts.join('');
+}
+
+function renderNuzlockeEditPanel(e) {
+  const locOpts = nuzlockeLocationOptionsForEntry(e);
+  const methodOpts = NUZLOCKE_METHODS.map(m => `<option value="${m.v}"${m.v === e.method ? ' selected' : ''}>${escapeHtml(m.label)}</option>`).join('');
+  const statusOpts = [['party','Party'],['box','Box'],['faint','Graveyard']]
+    .map(([v,label]) => `<option value="${v}"${v === e.status ? ' selected' : ''}>${label}</option>`).join('');
+  return `<div class="nuzlocke-entry-edit" data-edit-id="${e.id}">
+    <label>Nickname<input type="text" data-edit-field="nickname" value="${escapeHtml(e.nickname || '')}" placeholder="Optional"></label>
+    <label>Status<select data-edit-field="status">${statusOpts}</select></label>
+    <label>Location<select data-edit-field="location">${locOpts}</select></label>
+    <label>Method<select data-edit-field="method">${methodOpts}</select></label>
+    <label>Notes<input type="text" data-edit-field="notes" value="${escapeHtml(e.notes || '')}" placeholder="Optional"></label>
+    <div class="nuzlocke-entry-edit-actions">
+      <button type="button" class="nuzlocke-entry-btn" data-act="edit-cancel" data-id="${e.id}">Cancel</button>
+      <button type="button" class="nuzlocke-entry-btn good" data-act="edit-save" data-id="${e.id}">Save</button>
+    </div>
+  </div>`;
+}
+
+function renderNuzlockeEvolvePanelShell(e) {
+  return `<div class="nuzlocke-entry-evolve" data-evolve-id="${e.id}">
+    <div class="nuzlocke-evolve-empty"><span class="loading"></span> Loading evolutions…</div>
+    <div class="nuzlocke-entry-edit-actions">
+      <button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${e.id}">Close</button>
+    </div>
+  </div>`;
+}
+
+function findEvoNode(tree, name) {
+  if (!tree) return null;
+  if (tree.name === name) return tree;
+  for (const c of (tree.children || [])) {
+    const f = findEvoNode(c, name);
+    if (f) return f;
+  }
+  return null;
+}
+
+async function loadNuzlockeEvolveOptions(entryId) {
+  const entry = nuzlockeFindEntry(entryId);
+  if (!entry) return;
+  const panel = document.querySelector(`.nuzlocke-entry-evolve[data-evolve-id="${entryId}"]`);
+  if (!panel) return;
+  const tree = await getEvolution({ name: entry.name });
+  // Re-find panel: render may not have happened, but if user closed it, bail.
+  const panel2 = document.querySelector(`.nuzlocke-entry-evolve[data-evolve-id="${entryId}"]`);
+  if (!panel2) return;
+  if (tree === null) {
+    panel2.innerHTML = `<div class="nuzlocke-evolve-empty">Couldn't load evolution data — check your connection.</div>
+      <div class="nuzlocke-entry-edit-actions"><button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${entryId}">Close</button></div>`;
+    return;
+  }
+  if (tree === false) {
+    panel2.innerHTML = `<div class="nuzlocke-evolve-empty">No evolution data for this Pokémon.</div>
+      <div class="nuzlocke-entry-edit-actions"><button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${entryId}">Close</button></div>`;
+    return;
+  }
+  // Find the node corresponding to this entry's species.
+  const node = findEvoNode(tree, entry.name) || tree;
+  const children = node.children || [];
+  if (children.length === 0) {
+    panel2.innerHTML = `<div class="nuzlocke-evolve-empty">${escapeHtml(displayName(entry.name))} has no further evolutions.</div>
+      <div class="nuzlocke-entry-edit-actions"><button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${entryId}">Close</button></div>`;
+    return;
+  }
+  const opts = children.map(child => {
+    const cid = NAME_TO_ID[child.name] || child.id;
+    const sprite = cid ? spriteImg(cid, 'sprite-sm', child.name) : '';
+    const cond = formatEvoCondition(child.details) || '—';
+    return `<button type="button" class="nuzlocke-evolve-option" data-act="evolve-pick" data-id="${entryId}" data-target="${escapeHtml(child.name)}" title="Evolve into ${escapeHtml(displayName(child.name))}">
+      ${sprite}
+      <span>${escapeHtml(displayName(child.name))}</span>
+      <span class="nuzlocke-evolve-cond">${escapeHtml(cond)}</span>
+    </button>`;
+  }).join('');
+  panel2.innerHTML = `<div class="nuzlocke-entry-edit-actions" style="justify-content:flex-start"><span style="font-size:11px;color:var(--text-muted)">Evolve ${escapeHtml(displayName(entry.name))} into:</span></div>
+    <div class="nuzlocke-entry-evolve-grid">${opts}</div>
+    <div class="nuzlocke-entry-edit-actions"><button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${entryId}">Close</button></div>`;
+}
+
+function changeNuzlockeLevel(id, delta) {
+  const run = currentRun();
+  if (!run) return;
+  const entry = run.encounters.find(e => e.id === id);
+  if (!entry) return;
+  const next = Math.max(0, Math.min(100, (entry.level || 0) + delta));
+  if (next === entry.level) return;
+  entry.level = next;
+  saveNuzlocke();
+  // Update only the input + warnings; avoid full re-render so any open panels persist.
+  const input = document.querySelector(`.nuzlocke-level-input[data-id="${id}"]`);
+  if (input) input.value = String(next);
+  renderNuzlockeWarnings();
+}
+
+function setNuzlockeLevelFromInput(id, raw) {
+  const run = currentRun();
+  if (!run) return;
+  const entry = run.encounters.find(e => e.id === id);
+  if (!entry) return;
+  const lvl = Math.max(0, Math.min(100, parseInt(raw, 10) || 0));
+  if (lvl === entry.level) return;
+  entry.level = lvl;
+  saveNuzlocke();
+  renderNuzlockeWarnings();
+}
+
+function toggleNuzlockeEdit(id) {
+  NUZLOCKE_EDIT_ID = NUZLOCKE_EDIT_ID === id ? null : id;
+  if (NUZLOCKE_EDIT_ID) NUZLOCKE_EVOLVE_ID = null;
+  renderNuzlockeCards();
+}
+
+function toggleNuzlockeEvolve(id) {
+  NUZLOCKE_EVOLVE_ID = NUZLOCKE_EVOLVE_ID === id ? null : id;
+  if (NUZLOCKE_EVOLVE_ID) NUZLOCKE_EDIT_ID = null;
+  renderNuzlockeCards();
+  if (NUZLOCKE_EVOLVE_ID) loadNuzlockeEvolveOptions(NUZLOCKE_EVOLVE_ID);
+}
+
+function saveNuzlockeEditFromPanel(id) {
+  const run = currentRun();
+  if (!run) return;
+  const entry = run.encounters.find(e => e.id === id);
+  if (!entry) return;
+  const panel = document.querySelector(`.nuzlocke-entry-edit[data-edit-id="${id}"]`);
+  if (!panel) return;
+  const get = f => {
+    const el = panel.querySelector(`[data-edit-field="${f}"]`);
+    return el ? el.value : '';
+  };
+  const newStatus = get('status');
+  if (newStatus === 'party' && entry.status !== 'party') {
+    const partyCount = run.encounters.filter(e => e.status === 'party').length;
+    if (partyCount >= 6) { alert('Party is full (6). Move someone to the box first.'); return; }
+  }
+  entry.nickname = (get('nickname') || '').trim();
+  entry.notes = (get('notes') || '').trim();
+  entry.location = get('location') || '';
+  entry.method = get('method') || entry.method;
+  if (newStatus !== entry.status) {
+    entry.status = newStatus;
+    if (newStatus === 'faint') entry.faintedAt = Date.now();
+  }
+  saveNuzlocke();
+  NUZLOCKE_EDIT_ID = null;
+  renderNuzlocke();
+}
+
+async function evolveNuzlockeEntry(id, targetName) {
+  const run = currentRun();
+  if (!run) return;
+  const entry = run.encounters.find(e => e.id === id);
+  if (!entry) return;
+  if (!targetName || !NAME_TO_ID[targetName]) { alert(`Couldn't evolve into "${displayName(targetName)}" — species not in the Pokédex list.`); return; }
+  const oldName = entry.name;
+  entry.name = targetName;
+  entry.evolvedFrom = oldName;
+  entry.evolvedAt = Date.now();
+  saveNuzlocke();
+  nuzlockeUpdateCatchSync(targetName);
+  NUZLOCKE_EVOLVE_ID = null;
+  renderNuzlocke();
+}
+
+function nuzlockeSwapWith(sourceId, targetId) {
+  const run = currentRun();
+  if (!run || !sourceId || !targetId || sourceId === targetId) return;
+  const src = run.encounters.find(e => e.id === sourceId);
+  const tgt = run.encounters.find(e => e.id === targetId);
+  if (!src || !tgt) return;
+  if (src.status === 'faint' || tgt.status === 'faint') {
+    alert('Fainted Pokémon can\'t be swapped. Revive first.');
+    return;
+  }
+  if (src.status === tgt.status) {
+    // Reorder: move src so it appears immediately before tgt within the encounters array.
+    const srcIdx = run.encounters.indexOf(src);
+    run.encounters.splice(srcIdx, 1);
+    const tgtIdx = run.encounters.indexOf(tgt);
+    run.encounters.splice(tgtIdx, 0, src);
+  } else {
+    // Swap statuses (party ↔ box).
+    const a = src.status; src.status = tgt.status; tgt.status = a;
+  }
+  saveNuzlocke();
+  NUZLOCKE_SWAP_ID = null;
+  renderNuzlocke();
+}
+
+function startNuzlockeSwap(id) {
+  const entry = nuzlockeFindEntry(id);
+  if (!entry || entry.status === 'faint') return;
+  if (NUZLOCKE_SWAP_ID && NUZLOCKE_SWAP_ID !== id) {
+    nuzlockeSwapWith(NUZLOCKE_SWAP_ID, id);
+    return;
+  }
+  NUZLOCKE_SWAP_ID = NUZLOCKE_SWAP_ID === id ? null : id;
+  renderNuzlockeSwapBanner();
+  renderNuzlockeCards();
+}
+
+function moveNuzlockeToContainer(sourceId, containerId) {
+  const map = {
+    'nuzlocke-party-cards': 'party',
+    'nuzlocke-box-cards': 'box',
+    'nuzlocke-grave-cards': 'faint',
+  };
+  const toStatus = map[containerId];
+  if (!toStatus) return;
+  moveNuzlockeEntry(sourceId, toStatus);
 }
 
 function renderNuzlockeRulesPanel() {
@@ -6897,21 +7288,7 @@ function deleteNuzlockeEntry(id) {
 }
 
 function editNuzlockeEntry(id) {
-  const run = currentRun();
-  if (!run) return;
-  const entry = run.encounters.find(e => e.id === id);
-  if (!entry) return;
-  const nick = prompt('Nickname:', entry.nickname || '');
-  if (nick === null) return;
-  const lvRaw = prompt('Level:', entry.level || '');
-  if (lvRaw === null) return;
-  const notes = prompt('Notes:', entry.notes || '');
-  if (notes === null) return;
-  entry.nickname = nick.trim();
-  entry.level = parseInt(lvRaw, 10) || 0;
-  entry.notes = notes.trim();
-  saveNuzlocke();
-  renderNuzlocke();
+  toggleNuzlockeEdit(id);
 }
 
 function exportNuzlocke() {
@@ -7028,6 +7405,9 @@ function initNuzlocke() {
     if (!id || !NUZLOCKE_RUNS[id]) return;
     NUZLOCKE_CURRENT_ID = id;
     lsSet(CK.nuzlockeCurrent, id);
+    NUZLOCKE_EDIT_ID = null;
+    NUZLOCKE_EVOLVE_ID = null;
+    NUZLOCKE_SWAP_ID = null;
     renderNuzlocke();
   });
 
@@ -7217,7 +7597,15 @@ function initNuzlocke() {
 
   // Card actions (delegated).
   const delegateCards = (containerId) => {
-    document.getElementById(containerId).addEventListener('click', (e) => {
+    const container = document.getElementById(containerId);
+    container.addEventListener('click', (e) => {
+      const optBtn = e.target.closest('[data-act="evolve-pick"]');
+      if (optBtn) {
+        const id = optBtn.dataset.id;
+        const target = optBtn.dataset.target;
+        evolveNuzlockeEntry(id, target);
+        return;
+      }
       const btn = e.target.closest('button[data-act]');
       if (btn) {
         const id = btn.dataset.id;
@@ -7226,7 +7614,14 @@ function initNuzlocke() {
         else if (act === 'to-box') moveNuzlockeEntry(id, 'box');
         else if (act === 'to-faint') moveNuzlockeEntry(id, 'faint');
         else if (act === 'delete') deleteNuzlockeEntry(id);
-        else if (act === 'edit') editNuzlockeEntry(id);
+        else if (act === 'edit') toggleNuzlockeEdit(id);
+        else if (act === 'edit-cancel') { NUZLOCKE_EDIT_ID = null; renderNuzlockeCards(); }
+        else if (act === 'edit-save') saveNuzlockeEditFromPanel(id);
+        else if (act === 'evolve') toggleNuzlockeEvolve(id);
+        else if (act === 'evolve-cancel') { NUZLOCKE_EVOLVE_ID = null; renderNuzlockeCards(); }
+        else if (act === 'swap') startNuzlockeSwap(id);
+        else if (act === 'lvl-up') changeNuzlockeLevel(id, +1);
+        else if (act === 'lvl-down') changeNuzlockeLevel(id, -1);
         else if (act === 'open') {
           const entry = nuzlockeFindEntry(id);
           if (entry) {
@@ -7237,8 +7632,10 @@ function initNuzlocke() {
         }
         return;
       }
+      // Click on card body — but not on inputs/selects/buttons or inside open panels.
+      if (e.target.closest('input, select, textarea, button, .nuzlocke-entry-edit, .nuzlocke-entry-evolve')) return;
       const card = e.target.closest('.nuzlocke-entry-card');
-      if (card && !e.target.closest('button')) {
+      if (card) {
         const entry = nuzlockeFindEntry(card.dataset.id);
         if (entry) {
           setView('dex');
@@ -7247,10 +7644,77 @@ function initNuzlocke() {
         }
       }
     });
+
+    // Direct level-input changes.
+    container.addEventListener('change', (e) => {
+      const input = e.target.closest('input.nuzlocke-level-input[data-act="lvl-set"]');
+      if (input) {
+        setNuzlockeLevelFromInput(input.dataset.id, input.value);
+      }
+    });
+
+    // Drag-and-drop for swap / move-between-sections.
+    container.addEventListener('dragstart', (e) => {
+      const card = e.target.closest('.nuzlocke-entry-card[draggable="true"]');
+      if (!card) return;
+      // Don't start a drag from inside the edit/evolve panels.
+      if (e.target.closest('.nuzlocke-entry-edit, .nuzlocke-entry-evolve, input, select, button')) {
+        e.preventDefault();
+        return;
+      }
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', card.dataset.id); } catch {}
+      window.__nuzDragId = card.dataset.id;
+    });
+    container.addEventListener('dragend', (e) => {
+      const card = e.target.closest('.nuzlocke-entry-card');
+      if (card) card.classList.remove('dragging');
+      document.querySelectorAll('.nuzlocke-entry-card.drop-target').forEach(el => el.classList.remove('drop-target'));
+      document.querySelectorAll('.nuzlocke-card-grid.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
+      window.__nuzDragId = null;
+    });
+    container.addEventListener('dragover', (e) => {
+      if (!window.__nuzDragId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      container.classList.add('drop-zone-active');
+      const card = e.target.closest('.nuzlocke-entry-card');
+      document.querySelectorAll('.nuzlocke-entry-card.drop-target').forEach(el => { if (el !== card) el.classList.remove('drop-target'); });
+      if (card && card.dataset.id !== window.__nuzDragId) card.classList.add('drop-target');
+    });
+    container.addEventListener('dragleave', (e) => {
+      if (!container.contains(e.relatedTarget)) {
+        container.classList.remove('drop-zone-active');
+        container.querySelectorAll('.nuzlocke-entry-card.drop-target').forEach(el => el.classList.remove('drop-target'));
+      }
+    });
+    container.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const sourceId = window.__nuzDragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      if (!sourceId) return;
+      const card = e.target.closest('.nuzlocke-entry-card');
+      if (card && card.dataset.id !== sourceId) {
+        nuzlockeSwapWith(sourceId, card.dataset.id);
+      } else {
+        // Dropped on empty area of a section → move-by-status.
+        moveNuzlockeToContainer(sourceId, container.id);
+      }
+      container.classList.remove('drop-zone-active');
+    });
   };
   delegateCards('nuzlocke-party-cards');
   delegateCards('nuzlocke-box-cards');
   delegateCards('nuzlocke-grave-cards');
+
+  // Swap banner cancel.
+  document.getElementById('nuzlocke-swap-banner').addEventListener('click', (e) => {
+    if (e.target.id === 'nuzlocke-swap-cancel') {
+      NUZLOCKE_SWAP_ID = null;
+      renderNuzlockeSwapBanner();
+      renderNuzlockeCards();
+    }
+  });
 
   // Rules panel.
   document.getElementById('nuzlocke-rules-panel').addEventListener('change', (e) => {
