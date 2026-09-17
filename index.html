@@ -76,6 +76,12 @@
     gap: 4px;
     margin: 0 auto 1rem;
     border-bottom: 1px solid var(--border);
+    /* The tab row is wider than the 680px column, so size it to the tabs and
+       center it on the page instead of the column. */
+    width: max-content;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
   }
   .view-tab {
     padding: 8px 12px;
@@ -91,8 +97,11 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
-  @media (max-width: 640px) {
+  @media (max-width: 900px) {
     .view-nav {
+      width: auto;
+      position: static;
+      transform: none;
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
