@@ -2330,7 +2330,7 @@
     padding: 6px 10px;
   }
   .move-row-z .move-z-head { display: flex; align-items: center; gap: 6px; }
-  /* Type-colored move pills — mirrors the .t-* palette */
+  /* Type-colored move pills: mirrors the .t-* palette */
   .move-row[data-mtype="normal"]   { background: #D3D1C7; color: #2C2C2A; border-color: #B8B5A9; }
   .move-row[data-mtype="fire"]     { background: #F5C4B3; color: #4A1B0C; border-color: #E29E85; }
   .move-row[data-mtype="water"]    { background: #B5D4F4; color: #042C53; border-color: #8EB6DF; }
@@ -2827,7 +2827,7 @@
 
   <div class="team-view" id="team-view" style="display:none">
     <div class="team-header">
-      <h2 class="team-count-label">Your team — <span id="team-count">0 / 6</span></h2>
+      <h2 class="team-count-label">Your team: <span id="team-count">0 / 6</span></h2>
       <div class="team-header-actions">
         <button class="team-action-btn" id="team-export" type="button" title="Copy a shareable team code">⎘ Export</button>
         <button class="team-action-btn" id="team-import" type="button" title="Paste a team code to load">⇪ Import</button>
@@ -2848,8 +2848,8 @@
       </label>
       <label class="types-control-label">Type 2
         <select id="types-b">
-          <option value="">— any —</option>
-          <option value="__none__">— none (mono only) —</option>
+          <option value="">Any</option>
+          <option value="__none__">None (mono-type only)</option>
         </select>
       </label>
     </div>
@@ -2971,21 +2971,21 @@
 
         <div class="nuzlocke-section">
           <div class="nuzlocke-section-header">
-            <h3 class="section-title">Party — <span id="nuzlocke-party-badge">0 / 6</span></h3>
+            <h3 class="section-title">Party: <span id="nuzlocke-party-badge">0 / 6</span></h3>
           </div>
           <div id="nuzlocke-party-cards" class="nuzlocke-card-grid"></div>
         </div>
 
         <div class="nuzlocke-section">
           <div class="nuzlocke-section-header">
-            <h3 class="section-title">Box — <span id="nuzlocke-box-badge">0</span></h3>
+            <h3 class="section-title">Box: <span id="nuzlocke-box-badge">0</span></h3>
           </div>
           <div id="nuzlocke-box-cards" class="nuzlocke-card-grid"></div>
         </div>
 
         <div class="nuzlocke-section">
           <div class="nuzlocke-section-header">
-            <h3 class="section-title">Graveyard — <span id="nuzlocke-grave-badge">0</span></h3>
+            <h3 class="section-title">Graveyard: <span id="nuzlocke-grave-badge">0</span></h3>
           </div>
           <div id="nuzlocke-grave-cards" class="nuzlocke-card-grid"></div>
         </div>
@@ -3006,7 +3006,7 @@
 
         <div class="nuzlocke-section">
           <div class="nuzlocke-section-header nuzlocke-collapsible" data-panel="leaders">
-            <h3 class="section-title">Gym leaders — spoilers <span class="nuzlocke-caret">▸</span></h3>
+            <h3 class="section-title">Gym leaders (spoilers) <span class="nuzlocke-caret">▸</span></h3>
           </div>
           <div id="nuzlocke-leaders-panel" class="nuzlocke-panel" style="display:none"></div>
         </div>
@@ -3034,14 +3034,14 @@
     <div class="damage-toolbar">
       <button class="team-action-btn" id="damage-swap" type="button" title="Swap sides">⇄ Swap</button>
       <button class="team-action-btn" id="damage-reset" type="button">Reset</button>
-      <span id="damage-nuz-hint" class="damage-nuz-hint" style="display:none">Nuzlocke import available — see each side.</span>
+      <span id="damage-nuz-hint" class="damage-nuz-hint" style="display:none">Nuzlocke import available, see each side.</span>
     </div>
     <div class="damage-panels">
       <div class="damage-side" data-side="attacker">
         <div class="damage-side-head">
           <h3>Attacker</h3>
           <div class="damage-import-group" id="damage-atk-import" style="display:none">
-            <select id="damage-atk-import-sel"><option value="">— Nuzlocke import —</option></select>
+            <select id="damage-atk-import-sel"><option value="">Nuzlocke import…</option></select>
           </div>
         </div>
         <div class="damage-species-row">
@@ -3079,7 +3079,7 @@
         <div class="damage-side-head">
           <h3>Defender</h3>
           <div class="damage-import-group" id="damage-def-import" style="display:none">
-            <select id="damage-def-import-sel"><option value="">— Nuzlocke import —</option></select>
+            <select id="damage-def-import-sel"><option value="">Nuzlocke import…</option></select>
           </div>
         </div>
         <div class="damage-species-row">
@@ -3249,8 +3249,8 @@
                   <p class="pokemon-name" id="pokemon-name"></p>
                   <span class="pokemon-id" id="pokemon-id"></span>
                   <div class="catch-status">
-                    <button class="catch-status-btn catch-status-caught" id="catch-status-caught" type="button" title="Caught — click to toggle" aria-label="Caught">✓</button>
-                    <button class="catch-status-btn catch-status-shiny" id="catch-status-shiny" type="button" title="Caught shiny — click to toggle" aria-label="Caught shiny">✦</button>
+                    <button class="catch-status-btn catch-status-caught" id="catch-status-caught" type="button" title="Caught, click to toggle" aria-label="Caught">✓</button>
+                    <button class="catch-status-btn catch-status-shiny" id="catch-status-shiny" type="button" title="Caught shiny, click to toggle" aria-label="Caught shiny">✦</button>
                   </div>
                   <button id="copy-link" class="icon-btn" title="Copy shareable link" type="button" aria-label="Copy link">⎘</button>
                 </div>
@@ -3272,7 +3272,7 @@
           </div>
           <div class="main-card-block" id="abilities-section">
             <h4 class="main-card-block-title">Abilities</h4>
-            <div class="ability-hint">Hover to read the effect. Matchup-altering ones have a checkbox — toggle to apply.</div>
+            <div class="ability-hint">Hover to read the effect. Matchup-altering ones have a checkbox, toggle to apply.</div>
             <div class="ability-row" id="ability-list"></div>
           </div>
         </div>
@@ -3295,12 +3295,12 @@
 
       <div class="dashboard-col">
         <div class="section">
-          <h3 class="section-title">Defensive — what hits this Pokémon</h3>
+          <h3 class="section-title">Defensive: what hits this Pokémon</h3>
           <div id="matchup-groups"></div>
         </div>
 
         <div class="section">
-          <h3 class="section-title">Offensive — how this Pokémon's moves land</h3>
+          <h3 class="section-title">Offensive: how this Pokémon's moves land</h3>
           <div id="offense-groups"></div>
         </div>
 
@@ -3336,7 +3336,7 @@
     <div class="error" id="error"></div>
 
     <div class="footer">
-      Type effectiveness uses the Gen 6+ chart (Fairy included). Move STAB, items, weather, and other abilities (besides the toggles) aren't modeled — this is pure type matchups.
+      Type effectiveness uses the Gen 6+ chart (Fairy included). Move STAB, items, weather, and other abilities (besides the toggles) aren't modeled: this is pure type matchups.
     </div>
   </div>
 </div>
@@ -3477,7 +3477,7 @@ const GEN_INFO = {
   9: { short: 'SV',   full: 'Scarlet / Violet' },
 };
 function genShort(g) { return GEN_INFO[g] ? `Gen ${g} · ${GEN_INFO[g].short}` : `Gen ${g}`; }
-function genFull(g)  { return GEN_INFO[g] ? `Gen ${g} — ${GEN_INFO[g].full}` : `Gen ${g}`; }
+function genFull(g)  { return GEN_INFO[g] ? `Gen ${g}: ${GEN_INFO[g].full}` : `Gen ${g}`; }
 
 // National-dex ID ranges per generation.
 function genFromId(id) {
@@ -3493,7 +3493,7 @@ function genFromId(id) {
   if (id <= 1025) return 9;
   return null;
 }
-// Gen for a Pokémon name — for alternate forms (id > 10000) walk back to base species.
+// Gen for a Pokémon name: for alternate forms (id > 10000) walk back to base species.
 function genForName(name) {
   const id = NAME_TO_ID[name];
   if (!id) return null;
@@ -3854,7 +3854,7 @@ const NUZLOCKE_LEVEL_CAPS = {
   ],
 };
 
-// Gym leader / trial / kahuna rosters — ace + full roster, for optional spoilers panel.
+// Gym leader / trial / kahuna rosters: ace + full roster, for optional spoilers panel.
 // Teams are approximate canon rosters; levels are final-battle versions where applicable.
 const NUZLOCKE_LEADERS = {
   'red-blue': [
@@ -4151,7 +4151,7 @@ const NATURES = [
   ['Timid','spe','atk'],['Hasty','spe','def'],['Jolly','spe','spa'],['Naive','spe','spd'],
 ];
 
-// Damage-affecting items — multiplier applied where applicable.
+// Damage-affecting items: multiplier applied where applicable.
 // phys/spec multipliers apply to the attack stat before damage formula.
 // Use 'onSE' for Expert Belt (SE moves only), 'orb' for Life Orb (all hits).
 const DAMAGE_ITEMS = [
@@ -4218,7 +4218,7 @@ const CRITICAL_LS_PREFIXES = [
   'pokedex:nuzlocke-enabled:', 'pokedex:nuzlocke-panel:',
   'pokedex:damage-state:', 'pokedex:team-builds:', 'pokedex:evcalc-state:',
 ];
-// Keys that are re-fetchable caches — safe to evict under memory pressure.
+// Keys that are re-fetchable caches, safe to evict under memory pressure.
 const EVICTABLE_LS_PREFIXES = [
   'pokedex:mon:', 'pokedex:evo:', 'pokedex:species:',
   'pokedex:ability:', 'pokedex:move:', 'pokedex:encounters:',
@@ -4744,14 +4744,14 @@ function renderMatchupGroup(label, sub, types, variant) {
 function renderDefensive() {
   const groups = calculateDefensive(currentMon.types, Array.from(activeAbilities));
   const html = [
-    renderMatchupGroup('4× damage', 'double weak — hits like a truck', groups['4'], 'danger'),
+    renderMatchupGroup('4× damage', 'double weak, hits like a truck', groups['4'], 'danger'),
     renderMatchupGroup('2× damage', 'super effective', groups['2'], 'danger'),
     renderMatchupGroup('½× damage', 'resisted', groups['0.5'], 'success'),
     renderMatchupGroup('¼× damage', 'double resisted', groups['0.25'], 'success'),
-    renderMatchupGroup('0× damage', 'immune — no effect', groups['0'], 'success'),
+    renderMatchupGroup('0× damage', 'immune, no effect', groups['0'], 'success'),
   ].join('');
   document.getElementById('matchup-groups').innerHTML =
-    html || '<p class="muted">All neutral — no notable matchups.</p>';
+    html || '<p class="muted">All neutral, no notable matchups.</p>';
 }
 
 function renderOffensive() {
@@ -4827,7 +4827,7 @@ function statBarClass(base) {
 function bstTier(total) {
   if (total >= 680) return { label: 'Legendary tier', cls: 'tier-top' };
   if (total >= 600) return { label: 'Pseudo-legendary', cls: 'tier-top' };
-  if (total >= 540) return { label: 'Strong — top ~25%', cls: 'tier-high' };
+  if (total >= 540) return { label: 'Strong: top ~25%', cls: 'tier-high' };
   if (total >= 480) return { label: 'Above average', cls: 'tier-high' };
   if (total >= 420) return { label: 'Average', cls: 'tier-mid' };
   if (total >= 360) return { label: 'Below average', cls: 'tier-low' };
@@ -5103,7 +5103,7 @@ function renderBestMoveset(best) {
   const covered = best.score.se;
   return `
     <div class="coverage-divider"></div>
-    <div class="coverage-hint">Best ${best.types.length}-move set for coverage — hits <strong>${covered}</strong> of 18 types super-effectively.</div>
+    <div class="coverage-hint">Best ${best.types.length}-move set for coverage: hits <strong>${covered}</strong> of 18 types super-effectively.</div>
     <div class="coverage-row best-moveset">${moveChips}</div>
   `;
 }
@@ -5337,7 +5337,7 @@ function applyMoveTooltip(name, info) {
 
 function applyMoveError(name) {
   document.querySelectorAll(`.move-tooltip[data-for="${name}"]`).forEach(el => {
-    el.innerHTML = '<span class="muted">Couldn\'t load — hover again to retry.</span>';
+    el.innerHTML = '<span class="muted">Couldn\'t load, hover again to retry.</span>';
   });
 }
 
@@ -5523,7 +5523,7 @@ function formatLocationGroup(names) {
   if (p <= 0) return names.map(formatLocationName).join(', ');
   const prefix = tokenLists[0].slice(0, p).map(cap).join(' ');
   const suffixes = tokenLists.map(t => t.slice(p).map(cap).join(' '));
-  return `${prefix} — ${suffixes.join(', ')}`;
+  return `${prefix}: ${suffixes.join(', ')}`;
 }
 function consolidateByMethod(encounters) {
   const byMethod = new Map();
@@ -5556,7 +5556,7 @@ async function renderLocations() {
     return;
   }
   if (!encounters.length) {
-    container.innerHTML = '<div class="muted">No wild encounter data — this Pokémon may be trade/gift/evolution-only, or encounter data isn\'t in PokéAPI for newer games (Legends: Arceus, Scarlet/Violet).</div>';
+    container.innerHTML = '<div class="muted">No wild encounter data: this Pokémon may be trade/gift/evolution-only, or encounter data isn\'t in PokéAPI for newer games (Legends: Arceus, Scarlet/Violet).</div>';
     return;
   }
   locationsByVG = {};
@@ -5639,7 +5639,7 @@ function renderLocationsForVG(vg) {
       return { labels, encs };
     }).sort((a, b) => a.labels.localeCompare(b.labels));
     const sig = entries.map(e => `${e.labels}~${e.encs}`).join('||');
-    const html = entries.map(e => `<div><span class="location-version-label">${e.labels}</span> — ${e.encs || '—'}</div>`).join('');
+    const html = entries.map(e => `<div><span class="location-version-label">${e.labels}</span>: ${e.encs || 'none'}</div>`).join('');
     return { locName, sig, html };
   });
   const bySig = new Map();
@@ -5883,12 +5883,12 @@ function setView(v) {
     renderTypesSearch();
   } else if (isCatch) {
     title.textContent = "Catch 'Em All";
-    sub.textContent = 'Track which Pokémon you\'ve caught — regular and shiny. Saved locally.';
+    sub.textContent = 'Track which Pokémon you\'ve caught, regular and shiny. Saved locally.';
     initCatchAll();
     renderCatchAll();
   } else if (isNuzlocke) {
     title.textContent = 'Nuzlocke';
-    sub.textContent = 'Track a Nuzlocke run — encounters, deaths, rules, level caps, gym leaders.';
+    sub.textContent = 'Track a Nuzlocke run: encounters, deaths, rules, level caps, gym leaders.';
     initNuzlocke();
     renderNuzlocke();
   } else if (isDamage) {
@@ -5898,12 +5898,12 @@ function setView(v) {
     renderDamageCalc();
   } else if (isEvcalc) {
     title.textContent = 'EV / IV Calculator';
-    sub.textContent = 'Plan a spread — nature, ability, held item, EVs and IVs — or work out IVs from in-game stats. Export builds to your team.';
+    sub.textContent = 'Plan a spread (nature, ability, held item, EVs and IVs) or work out IVs from in-game stats. Export builds to your team.';
     initEvcalc();
     renderEvcalcView();
   } else if (isItems) {
     title.textContent = 'Item Database';
-    sub.textContent = 'Every item in PokéAPI — search, filter by pocket or category, see effects and which wild Pokémon hold them.';
+    sub.textContent = 'Every item in PokéAPI: search, filter by pocket or category, see effects and which wild Pokémon hold them.';
     initItems();
     renderItems(false);
   } else {
@@ -6209,7 +6209,7 @@ function renderTeamScore(mons, bs) {
     pts: spdPts,
   });
 
-  // Build quality — only scored once at least one member has a saved build.
+  // Build quality: only scored once at least one member has a saved build.
   let maxPts = 90;
   if (bs && bs.count > 0) {
     maxPts += 10;
@@ -6275,7 +6275,7 @@ function renderTeamScore(mons, bs) {
     });
 
     if (bs.count < mons.length) {
-      breakdown.push({ info: true, label: `${bs.count}/${mons.length} built — unbuilt members count as neutral Lv ${lvl}, 31 IV / 0 EV` });
+      breakdown.push({ info: true, label: `${bs.count}/${mons.length} built, unbuilt members count as neutral Lv ${lvl}, 31 IV / 0 EV` });
     }
   } else {
     breakdown.push({ info: true, label: 'Save builds from the EV/IV calc to score speed control, bulk and item hygiene (+10)' });
@@ -6283,11 +6283,11 @@ function renderTeamScore(mons, bs) {
 
   const pct = Math.min(100, Math.round((pts / maxPts) * 100));
   const grade = pct >= 90 ? 'S' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 55 ? 'C' : pct >= 40 ? 'D' : 'F';
-  const blurb = grade === 'S' ? 'Elite team — tight coverage, balanced roles.'
+  const blurb = grade === 'S' ? 'Elite team: tight coverage, balanced roles.'
     : grade === 'A' ? 'Strong team. Minor gaps, nothing scary.'
-    : grade === 'B' ? 'Solid — a few tweaks could push it higher.'
+    : grade === 'B' ? 'Solid, a few tweaks could push it higher.'
     : grade === 'C' ? 'Workable but exposed. Check the weaknesses below.'
-    : grade === 'D' ? 'Rough — consider swaps to fix shared weaknesses.'
+    : grade === 'D' ? 'Rough, consider swaps to fix shared weaknesses.'
     : 'Major balance issues. Start with type variety.';
 
   el.innerHTML = `
@@ -6374,7 +6374,7 @@ function renderTeamAnalysis(mons, bs) {
     return `<tr><td class="attacker-cell">${typePill(r.atk)}</td>${cells}</tr>`;
   }).join('');
   const sharedHtml = shared.length === 0
-    ? '<span class="muted">No shared weaknesses — well balanced.</span>'
+    ? '<span class="muted">No shared weaknesses, well balanced.</span>'
     : shared.map(s => `<span class="shared-weakness">${typePill(s.type)}<strong>×${s.count}</strong></span>`).join('');
   const pillList = arr => arr.length ? arr.map(typePill).join(' ') : '<span class="muted">None</span>';
   el.innerHTML = `
@@ -6418,7 +6418,7 @@ async function setCompareSlot(slot, name) {
     updateCompareAddBtn();
     return true;
   } catch (e) {
-    showError(`Couldn't load "${displayName(name)}" — ${e.message}`);
+    showError(`Couldn't load "${displayName(name)}": ${e.message}`);
     return false;
   }
 }
@@ -6450,7 +6450,7 @@ function renderCompare() {
         <span class="compare-slot-types">${mon.types.map(typePill).join('')}</span>
       `;
     } else {
-      s.innerHTML = `<span>Slot ${side.toUpperCase()}</span><span class="muted" style="font-size:11px">${COMPARE.activeSlot === side ? '(active — search to fill)' : 'Click to activate'}</span>`;
+      s.innerHTML = `<span>Slot ${side.toUpperCase()}</span><span class="muted" style="font-size:11px">${COMPARE.activeSlot === side ? '(active, search to fill)' : 'Click to activate'}</span>`;
     }
   });
   if (!COMPARE.a || !COMPARE.b) {
@@ -6758,7 +6758,7 @@ function renderCatchAll() {
     return;
   }
 
-  // Totals for the unfiltered pool grouped by gen — so header counts reflect full progress, not filter.
+  // Totals for the unfiltered pool grouped by gen, so header counts reflect full progress, not filter.
   const totalByGen = new Map();
   const caughtByGen = new Map();
   const shinyByGen = new Map();
@@ -7094,11 +7094,11 @@ function renderNuzlocke() {
 function renderNuzlockeRunSelect() {
   const select = document.getElementById('nuzlocke-run-select');
   const ids = Object.keys(NUZLOCKE_RUNS);
-  if (ids.length === 0) { select.innerHTML = '<option value="">— no runs —</option>'; return; }
+  if (ids.length === 0) { select.innerHTML = '<option value="">No runs</option>'; return; }
   ids.sort((a, b) => (NUZLOCKE_RUNS[b].createdAt || 0) - (NUZLOCKE_RUNS[a].createdAt || 0));
   select.innerHTML = ids.map(id => {
     const r = NUZLOCKE_RUNS[id];
-    const label = `${r.name} — ${gameLabel(r.vg)}`;
+    const label = `${r.name} (${gameLabel(r.vg)})`;
     return `<option value="${id}">${escapeHtml(label)}</option>`;
   }).join('');
   if (NUZLOCKE_CURRENT_ID && NUZLOCKE_RUNS[NUZLOCKE_CURRENT_ID]) select.value = NUZLOCKE_CURRENT_ID;
@@ -7167,7 +7167,7 @@ function computeNuzlockeWarnings(run) {
       if (e.status === 'faint') return;
       const lv = parseInt(e.level, 10);
       if (lv && lv > capRow.cap) {
-        warnings.push(`${e.nickname || displayName(e.name)} is Lv ${lv} — over the cap (Lv ${capRow.cap}).`);
+        warnings.push(`${e.nickname || displayName(e.name)} is Lv ${lv}, over the cap (Lv ${capRow.cap}).`);
       }
     });
   }
@@ -7196,7 +7196,7 @@ function computeNuzlockeWarnings(run) {
         // A shiny-clause exception: if shiny clause is on, ignore the second catch if explicitly flagged shiny.
         const filtered = ruleEnabled(run, 'shiny') ? g.filter(e => !e.shiny) : g;
         if (filtered.length > 1) {
-          warnings.push(`Multiple catches at ${loc} (${filtered.length}) — first-encounter rule.`);
+          warnings.push(`Multiple catches at ${loc} (${filtered.length}), first-encounter rule.`);
         }
       });
     });
@@ -7204,7 +7204,7 @@ function computeNuzlockeWarnings(run) {
   if (ruleEnabled(run, 'species')) {
     bySpecies.forEach((list, sp) => {
       const kept = list.filter(e => e.status !== 'faint');
-      if (kept.length > 1) warnings.push(`You own ${kept.length} ${displayName(sp)} — species clause on.`);
+      if (kept.length > 1) warnings.push(`You own ${kept.length} ${displayName(sp)}, species clause on.`);
     });
   }
   if (ruleEnabled(run, 'dupes')) {
@@ -7212,7 +7212,7 @@ function computeNuzlockeWarnings(run) {
       const kept = list.filter(e => e.status !== 'faint');
       const uniqueSpecies = new Set(kept.map(e => e.name));
       if (uniqueSpecies.size > 1 || kept.length > 1) {
-        warnings.push(`${displayName(fam)} family is duplicated (${kept.length} in this line) — dupes clause on.`);
+        warnings.push(`${displayName(fam)} family is duplicated (${kept.length} in this line), dupes clause on.`);
       }
     });
   }
@@ -7231,7 +7231,7 @@ function renderNuzlockeSwapBanner() {
   const entry = nuzlockeFindEntry(NUZLOCKE_SWAP_ID);
   if (!entry) { NUZLOCKE_SWAP_ID = null; el.style.display = 'none'; el.innerHTML = ''; return; }
   const label = entry.nickname ? `${escapeHtml(entry.nickname)} (${escapeHtml(displayName(entry.name))})` : escapeHtml(displayName(entry.name));
-  el.innerHTML = `<span>⇄ Swap mode — pick another Pokémon's <strong>Swap</strong> button (or drag-drop) to swap with <strong>${label}</strong>. Same-section swaps reorder.</span>
+  el.innerHTML = `<span>⇄ Swap mode: pick another Pokémon's <strong>Swap</strong> button (or drag-drop) to swap with <strong>${label}</strong>. Same-section swaps reorder.</span>
     <button type="button" class="nuzlocke-entry-btn" id="nuzlocke-swap-cancel">Cancel</button>`;
   el.style.display = 'flex';
 }
@@ -7242,11 +7242,11 @@ function renderNuzlockeLocationOptions() {
   const locs = NUZLOCKE_LOCATIONS[run.vg] || [];
   const starter = NUZLOCKE_STARTERS[run.vg];
   const starterOpt = starter
-    ? `<option value="__starter__">✨ Starter — ${escapeHtml(starter.location)}</option>`
+    ? `<option value="__starter__">✨ Starter: ${escapeHtml(starter.location)}</option>`
     : '';
   sel.innerHTML = starterOpt
     + locs.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('')
-    + '<option value="__custom__">— custom (type below)…</option>'
+    + '<option value="__custom__">Custom (type below)…</option>'
     + '<option value="Gift">Gift</option>';
   updateNuzlockeStarterPicker();
 }
@@ -7361,7 +7361,7 @@ function nuzlockeEntryCard(e) {
 function nuzlockeLocationOptionsForEntry(e) {
   const run = currentRun();
   const locations = (run && NUZLOCKE_LOCATIONS[run.vg]) || [];
-  const opts = ['<option value="">— None —</option>'];
+  const opts = ['<option value="">None</option>'];
   let matched = false;
   locations.forEach(L => {
     const sel = L === e.location ? ' selected' : '';
@@ -7427,7 +7427,7 @@ async function loadNuzlockeEvolveOptions(entryId) {
   const panel2 = document.querySelector(`.nuzlocke-entry-evolve[data-evolve-id="${entryId}"]`);
   if (!panel2) return;
   if (tree === null) {
-    panel2.innerHTML = `<div class="nuzlocke-evolve-empty">Couldn't load evolution data — check your connection.</div>
+    panel2.innerHTML = `<div class="nuzlocke-evolve-empty">Couldn't load evolution data, check your connection.</div>
       <div class="nuzlocke-entry-edit-actions"><button type="button" class="nuzlocke-entry-btn" data-act="evolve-cancel" data-id="${entryId}">Close</button></div>`;
     return;
   }
@@ -7533,7 +7533,7 @@ async function evolveNuzlockeEntry(id, targetName) {
   if (!run) return;
   const entry = run.encounters.find(e => e.id === id);
   if (!entry) return;
-  if (!targetName || !NAME_TO_ID[targetName]) { alert(`Couldn't evolve into "${displayName(targetName)}" — species not in the Pokédex list.`); return; }
+  if (!targetName || !NAME_TO_ID[targetName]) { alert(`Couldn't evolve into "${displayName(targetName)}", species not in the Pokédex list.`); return; }
   const oldName = entry.name;
   entry.name = targetName;
   entry.evolvedFrom = oldName;
@@ -8082,7 +8082,7 @@ function initNuzlocke() {
         }
         return;
       }
-      // Click on card body — but not on inputs/selects/buttons or inside open panels.
+      // Click on card body, but not on inputs/selects/buttons or inside open panels.
       if (e.target.closest('input, select, textarea, button, .nuzlocke-entry-edit, .nuzlocke-entry-evolve')) return;
       const card = e.target.closest('.nuzlocke-entry-card');
       if (card) {
@@ -8224,7 +8224,7 @@ function initNuzlocke() {
     }
   });
 
-  // Leaders panel — click a mon to open it.
+  // Leaders panel: click a mon to open it.
   document.getElementById('nuzlocke-leaders-panel').addEventListener('click', (e) => {
     const mon = e.target.closest('.nuzlocke-leader-mon');
     if (!mon) return;
@@ -8373,7 +8373,7 @@ function calcDamage(atkMon, defMon, move, state) {
   if (atkAbilDef.contactMult && isContact) basePower = Math.floor(basePower * atkAbilDef.contactMult);
   // Sheer Force (approximation: apply whenever set)
   if (atkAbilDef.sheerForce) basePower = Math.floor(basePower * atkAbilDef.sheerForce);
-  // Pinch abilities (Blaze etc.) — apply if HP% <= 33
+  // Pinch abilities (Blaze etc.): apply if HP% <= 33
   const atkHpLow = (atkAbilDef.pinchType && move.type === atkAbilDef.pinchType);
   // Life Orb (apply to damage output, simplified here as BP mult)
   if (atkItemDef.mult && atkItemDef.v === 'life-orb') basePower = Math.floor(basePower * 1.3);
@@ -8419,7 +8419,7 @@ function calcDamage(atkMon, defMon, move, state) {
   let multiscale = 1;
   if (defAbilDef.multiscale && (dSide.hpPct >= 100)) multiscale = 0.5;
 
-  // Pinch (low HP) — assume atker HP% < 33 toggles via status "pinch"
+  // Pinch (low HP): assume atker HP% < 33 toggles via status "pinch"
   // We don't track attacker HP separately; skip unless a user-requested field added later.
 
   // Expert Belt
@@ -8650,15 +8650,15 @@ function renderDamageImports() {
   const defSel = document.getElementById('damage-def-import-sel');
   const party = (run.encounters || []).filter(e => e.status === 'party');
   const box = (run.encounters || []).filter(e => e.status === 'box');
-  const atkOpts = ['<option value="">— Nuzlocke import —</option>'];
+  const atkOpts = ['<option value="">Nuzlocke import…</option>'];
   party.forEach(e => atkOpts.push(`<option value="party:${e.id}">Party: ${e.nickname || displayName(e.name)} (Lv ${e.level || '?'})</option>`));
   box.forEach(e => atkOpts.push(`<option value="box:${e.id}">Box: ${e.nickname || displayName(e.name)} (Lv ${e.level || '?'})</option>`));
   atkSel.innerHTML = atkOpts.join('');
   const leaders = NUZLOCKE_LEADERS[run.vg] || [];
-  const defOpts = ['<option value="">— Nuzlocke import —</option>'];
+  const defOpts = ['<option value="">Nuzlocke import…</option>'];
   leaders.forEach((l, li) => {
     l.team.forEach((m, mi) => {
-      defOpts.push(`<option value="leader:${li}:${mi}">${l.name} — ${displayName(m.n)} (Lv ${m.lv})${m.ace ? ' ★' : ''}</option>`);
+      defOpts.push(`<option value="leader:${li}:${mi}">${l.name}: ${displayName(m.n)} (Lv ${m.lv})${m.ace ? ' ★' : ''}</option>`);
     });
   });
   party.forEach(e => defOpts.push(`<option value="party:${e.id}">Party: ${e.nickname || displayName(e.name)} (Lv ${e.level || '?'})</option>`));
@@ -8952,7 +8952,7 @@ function initTypesSearch() {
   const sorted = ALL_TYPES.slice().sort();
   const opts = sorted.map(t => `<option value="${t}">${formatSlug(t)}</option>`).join('');
   a.innerHTML = opts;
-  b.innerHTML = '<option value="">— any —</option><option value="__none__">— none (mono only) —</option>' + opts;
+  b.innerHTML = '<option value="">Any</option><option value="__none__">None (mono-type only)</option>' + opts;
   a.value = 'fire';
   a.addEventListener('change', renderTypesSearch);
   b.addEventListener('change', renderTypesSearch);
@@ -9022,7 +9022,7 @@ async function renderTypesSearch() {
     const cards = deduped.map(e => {
       const id = NAME_TO_ID[e.name];
       const typesLabel = e.types.map(t => `<span class="type-pill t-${t}">${t}</span>`).join('');
-      return `<div class="types-card" data-name="${e.name}" title="${displayName(e.name)} — ${e.types.join(' / ')}">
+      return `<div class="types-card" data-name="${e.name}" title="${displayName(e.name)}: ${e.types.join(' / ')}">
         ${catchBadgesHtml(e.name)}
         ${spriteImg(id, 'sprite-md', e.name)}
         <div class="types-card-name">${displayName(e.name)}</div>
@@ -9042,7 +9042,7 @@ async function renderEvolution() {
   container.innerHTML = '<div class="evo-tree"><span class="loading"></span><span class="evo-empty">Loading evolution chain…</span></div>';
   const tree = await getEvolution(currentMon);
   if (tree === null) {
-    container.innerHTML = '<div class="evo-tree"><span class="evo-empty">Couldn\'t load evolution data — check your connection.</span></div>';
+    container.innerHTML = '<div class="evo-tree"><span class="evo-empty">Couldn\'t load evolution data, check your connection.</span></div>';
     return;
   }
   if (tree === false) {
@@ -9136,7 +9136,7 @@ async function selectPokemon(name, { updateUrl = true } = {}) {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
-    showError(`Couldn't load "${displayName(name)}" — ${e.message}`);
+    showError(`Couldn't load "${displayName(name)}": ${e.message}`);
   }
 }
 
@@ -9208,7 +9208,7 @@ function pickOrAdd(name) {
     if (!added && team.includes(name)) {
       searchInput.placeholder = `${displayName(name)} is already on your team`;
     } else if (!added && team.length >= TEAM_MAX) {
-      searchInput.placeholder = 'Team is full — remove someone first';
+      searchInput.placeholder = 'Team is full, remove someone first';
     }
   } else if (CURRENT_VIEW === 'compare') {
     setCompareSlot(COMPARE.activeSlot, name);
@@ -9231,7 +9231,7 @@ function trySubmit() {
     if (CURRENT_VIEW === 'dex') searchInput.value = displayName(name);
     pickOrAdd(name);
   } else if (!TEAM_VIEW) {
-    showError(`Couldn't find "${q}". Try a different spelling — for forms, use hyphens like "raichu-alola".`);
+    showError(`Couldn't find "${q}". Try a different spelling. For forms, use hyphens like "raichu-alola".`);
   }
 }
 
@@ -9788,7 +9788,7 @@ async function getItem(name) {
   return item;
 }
 
-// Lazy detail loading for visible cards — a few requests in flight at a time.
+// Lazy detail loading for visible cards, a few requests in flight at a time.
 const ITEM_FETCH_QUEUE = [];
 let ITEM_FETCH_ACTIVE = 0;
 function queueItemFetch(name, cb) { ITEM_FETCH_QUEUE.push({ name, cb }); pumpItemQueue(); }
@@ -9862,7 +9862,7 @@ async function renderItems(append) {
     hint.style.display = '';
     hint.innerHTML = '<span class="loading"></span>Loading item database from PokéAPI…';
     try { await loadItemIndex(); }
-    catch (e) { hint.textContent = `Couldn't load items — ${e.message}`; return; }
+    catch (e) { hint.textContent = `Couldn't load items: ${e.message}`; return; }
     hint.style.display = 'none';
     populateItemSelects();
   }
@@ -9927,7 +9927,7 @@ async function openItemModal(name) {
       ${isHeldItem(idx) ? `<div class="item-detail-section"><button class="team-action-btn" type="button" data-evcalc-item="${it.name}">Use in EV/IV calc →</button></div>` : ''}
     `;
   } catch (e) {
-    body.innerHTML = `<div class="counters-hint">Couldn't load this item — ${escapeHtml(e.message)}</div>`;
+    body.innerHTML = `<div class="counters-hint">Couldn't load this item: ${escapeHtml(e.message)}</div>`;
   }
 }
 function closeItemModal() {
@@ -10048,7 +10048,7 @@ async function canSpeciesEvolve(mon) {
 }
 
 // Stat multipliers a held item grants this Pokémon, plus a note explaining why (or why not).
-// ctx: { canEvolve, ability, raw } — raw = the un-itemed final stats (Booster Energy picks the highest).
+// ctx: { canEvolve, ability, raw }; raw = the un-itemed final stats (Booster Energy picks the highest).
 function itemStatMods(itemName, mon, ctx) {
   ctx = ctx || {};
   const mod = itemName && ITEM_STAT_MODS[itemName];
@@ -10058,19 +10058,19 @@ function itemStatMods(itemName, mon, ctx) {
     return { mults: {}, active: false, note: `${label} has no stat effect on ${displayName(mon.name)}.` };
   }
   if (mod.nfe && ctx.canEvolve === false) {
-    return { mults: {}, active: false, note: `${label} only works on Pokémon that can still evolve — no effect on ${displayName(mon.name)}.` };
+    return { mults: {}, active: false, note: `${label} only works on Pokémon that can still evolve, no effect on ${displayName(mon.name)}.` };
   }
   if (mod.booster) {
     const ab = ctx.ability || '';
     if (ab !== 'protosynthesis' && ab !== 'quark-drive') {
-      return { mults: {}, active: false, note: `${label} only triggers Protosynthesis or Quark Drive — ${displayName(mon.name)} needs one of those abilities.` };
+      return { mults: {}, active: false, note: `${label} only triggers Protosynthesis or Quark Drive, ${displayName(mon.name)} needs one of those abilities.` };
     }
     // Highest non-HP stat wins; ties resolve Atk > Def > SpA > SpD > Spe, as in-game.
     const rawStats = ctx.raw || {};
     let best = 'atk';
     for (const k of ['def', 'spa', 'spd', 'spe']) if ((rawStats[k] || 0) > (rawStats[best] || 0)) best = k;
     const mult = best === 'spe' ? 1.5 : 1.3;
-    return { mults: { [best]: mult }, active: true, note: `${label}: ${formatSlug(ab)} boosts the highest stat — ${DMG_STAT_LABELS[best]} ×${mult}.` };
+    return { mults: { [best]: mult }, active: true, note: `${label}: ${formatSlug(ab)} boosts the highest stat: ${DMG_STAT_LABELS[best]} ×${mult}.` };
   }
   const mults = {};
   DMG_STAT_KEYS.forEach(k => { if (mod[k]) mults[k] = mod[k]; });
@@ -10372,7 +10372,7 @@ async function renderEvcalcItemPreview() {
     const it = await getItem(name);
     if (EVCALC_STATE.item !== name) return;
     el.innerHTML = `<img src="${it.sprite || itemSpriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'">` +
-      `<span><strong>${escapeHtml(it.displayName)}</strong> — ${escapeHtml(it.shortEffect || (it.flavor && it.flavor.text) || 'No effect text.')}</span>`;
+      `<span><strong>${escapeHtml(it.displayName)}</strong>: ${escapeHtml(it.shortEffect || (it.flavor && it.flavor.text) || 'No effect text.')}</span>`;
   } catch {}
 }
 
@@ -10382,7 +10382,7 @@ function renderEvcalcBudget() {
   const budget = document.getElementById('evcalc-budget');
   budget.classList.toggle('over', over);
   document.getElementById('evcalc-budget-bar').classList.toggle('over', over);
-  budget.innerHTML = `<span>EVs used: <strong>${total} / ${EV_MAX_TOTAL}</strong>${over ? ' — over the limit!' : ''}</span>` +
+  budget.innerHTML = `<span>EVs used: <strong>${total} / ${EV_MAX_TOTAL}</strong>${over ? ', over the limit!' : ''}</span>` +
     `<span>${Math.max(0, EV_MAX_TOTAL - total)} remaining</span>`;
   document.getElementById('evcalc-budget-fill').style.width = `${Math.min(100, total / EV_MAX_TOTAL * 100)}%`;
 }
@@ -10471,8 +10471,8 @@ function renderEvcalcResult() {
   exportEl.textContent = evcalcSetText(s);
   const onTeam = team.includes(mon.name);
   hint.textContent = onTeam
-    ? (TEAM_BUILDS[mon.name] ? 'On your team — exporting updates its saved build.' : 'On your team — exporting saves this build to it.')
-    : (team.length >= TEAM_MAX ? 'Team is full — remove someone first to export.' : `Exporting adds ${displayName(mon.name)} to your team with this build.`);
+    ? (TEAM_BUILDS[mon.name] ? 'On your team: exporting updates its saved build.' : 'On your team: exporting saves this build to it.')
+    : (team.length >= TEAM_MAX ? 'Team is full, remove someone first to export.' : `Exporting adds ${displayName(mon.name)} to your team with this build.`);
 }
 
 function renderEvcalcSolver() {
@@ -10489,7 +10489,7 @@ function renderEvcalcSolver() {
   const bad = entries.filter(k => EVCALC_SOLVED[k] === null);
   const wide = entries.filter(k => EVCALC_SOLVED[k] && EVCALC_SOLVED[k][0] !== EVCALC_SOLVED[k][1]);
   const parts = [];
-  if (bad.length) parts.push(`No IV reproduces the ${bad.map(k => DMG_STAT_LABELS[k]).join(', ')} value — double-check the level, nature and EVs.`);
+  if (bad.length) parts.push(`No IV reproduces the ${bad.map(k => DMG_STAT_LABELS[k]).join(', ')} value, double-check the level, nature and EVs.`);
   if (wide.length) parts.push('Ranges narrow at higher levels; re-check after levelling up. Applying uses the lowest IV in each range.');
   note.textContent = parts.join(' ');
   apply.disabled = !entries.some(k => EVCALC_SOLVED[k]);
@@ -10650,7 +10650,7 @@ function initEvcalc() {
   // Once the item index arrives, refresh an open suggestion list that was showing "Loading…".
   loadItemIndex().then(() => { if (itemSuggest.style.display !== 'none') renderEvcalcItemSuggestions(itemInput.value); }).catch(() => {});
 
-  // IV / EV inputs are delegated — the rows re-render whenever the species changes.
+  // IV / EV inputs are delegated: the rows re-render whenever the species changes.
   const stats = document.getElementById('evcalc-stats');
   stats.addEventListener('input', e => {
     const inp = e.target;
@@ -10721,7 +10721,7 @@ function teamSlotBuildBadge(name) {
   const b = TEAM_BUILDS[name];
   if (!b) return '';
   const inner = b.item ? `<img src="${itemSpriteUrl(b.item)}" alt="" onerror="this.parentNode.textContent='⚙'">` : '⚙';
-  return `<span class="team-slot-build" title="Saved build${b.item ? ` — ${itemDisplayName(b.item)}` : ''}">${inner}</span>`;
+  return `<span class="team-slot-build" title="Saved build${b.item ? `: ${itemDisplayName(b.item)}` : ''}">${inner}</span>`;
 }
 
 function renderTeamBuilds(mons, bs) {
@@ -10799,7 +10799,7 @@ document.getElementById('team-builds').addEventListener('click', e => {
     console.log(`Loaded ${ALL_NAMES.length} Pokémon`);
   } catch (e) {
     document.getElementById('hint').style.display = 'none';
-    showError(`Couldn't load Pokémon list from PokéAPI. ${navigator.onLine ? 'Try again shortly.' : 'You appear to be offline — connect once to cache the list locally.'}`);
+    showError(`Couldn't load Pokémon list from PokéAPI. ${navigator.onLine ? 'Try again shortly.' : 'You appear to be offline, connect once to cache the list locally.'}`);
   }
 })();
 </script>

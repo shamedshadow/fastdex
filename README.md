@@ -1,6 +1,6 @@
 # FastDex
 
-A fast, modern Pokédex web app. Search 1,000+ Pokémon, analyze matchups, build teams, track Nuzlocke runs, calculate damage, and hunt your living shiny dex — all from a single HTML page.
+A fast, modern Pokédex web app. Search 1,000+ Pokémon, analyze matchups, build teams, track Nuzlocke runs, calculate damage, and hunt your living shiny dex, all from a single HTML page.
 
 **Live at [fastdex.app](https://fastdex.app)**
 
@@ -8,18 +8,18 @@ A fast, modern Pokédex web app. Search 1,000+ Pokémon, analyze matchups, build
 
 ## Features
 
-- **Pokédex** — Stats, abilities, type matchups, moves with filters, evolutions, breeding info, flavor text, wild encounter locations, and held-item drop rates.
-- **Team Builder** — Draft up to 6 Pokémon, see shared weaknesses, combined STAB coverage, suggested partners, and a graded team score. Saved EV/IV builds feed into it: roles use real spreads, offensive coverage uses saved movesets, and a build-quality section scores speed control, bulk anchors and build hygiene.
-- **Compare** — Stack two Pokémon side-by-side: stats, types, head-to-head matchup math.
-- **Type Search** — Find every Pokémon of a given type or dual-type combination.
+- **Pokédex**: Stats, abilities, type matchups, moves with filters, evolutions, breeding info, flavor text, wild encounter locations, and held-item drop rates.
+- **Team Builder**: Draft up to 6 Pokémon, see shared weaknesses, combined STAB coverage, suggested partners, and a graded team score. Saved EV/IV builds feed into it: roles use real spreads, offensive coverage uses saved movesets, and a build-quality section scores speed control, bulk anchors and build hygiene.
+- **Compare**: Stack two Pokémon side-by-side: stats, types, head-to-head matchup math.
+- **Type Search**: Find every Pokémon of a given type or dual-type combination.
 - **Egg Group Listing** - Click on an egg group to see all Pokémon within that group.
-- **Catch 'Em All** — Track your living dex (regular + shiny) with per-generation progress bars and stats. Import/export JSON.
-- **Nuzlocke Mode** — Run tracker with party/box/graveyard, encounter logging, level caps, rules enforcement, gym leader spoilers, and multi-run support. Covers every mainline game from Red/Blue to Scarlet/Violet.
-- **Damage Calculator** — Full Gen 6+ damage formula with natures, IVs/EVs, stat stages, abilities, items, weather, terrain, screens, and crits. Imports Pokémon directly from your Nuzlocke runs.
-- **EV/IV Calculator** — Plan a spread with nature, ability, held item (searchable; Choice items, Eviolite, Booster Energy, Light Ball etc. are applied to stats), EVs (510 budget), IVs and a 4-move set from the species' learnset, see final stats, or solve IVs from in-game stats. Export builds straight into the Team Builder or copy them in Showdown format.
-- **Item Database** — Every item in PokéAPI with sprites, effects, descriptions, cost, fling data and which wild Pokémon hold them. Filter by pocket or category.
+- **Catch 'Em All**: Track your living dex (regular + shiny) with per-generation progress bars and stats. Import/export JSON.
+- **Nuzlocke Mode**: Run tracker with party/box/graveyard, encounter logging, level caps, rules enforcement, gym leader spoilers, and multi-run support. Covers every mainline game from Red/Blue to Scarlet/Violet.
+- **Damage Calculator**: Full Gen 6+ damage formula with natures, IVs/EVs, stat stages, abilities, items, weather, terrain, screens, and crits. Imports Pokémon directly from your Nuzlocke runs.
+- **EV/IV Calculator**: Plan a spread with nature, ability, held item (searchable; Choice items, Eviolite, Booster Energy, Light Ball etc. are applied to stats), EVs (510 budget), IVs and a 4-move set from the species' learnset, see final stats, or solve IVs from in-game stats. Export builds straight into the Team Builder or copy them in Showdown format.
+- **Item Database**: Every item in PokéAPI with sprites, effects, descriptions, cost, fling data and which wild Pokémon hold them. Filter by pocket or category.
 
-All data is cached aggressively in `localStorage` — after first load, the app works almost instantly.
+All data is cached aggressively in `localStorage`, so after first load the app works almost instantly.
 
 ---
 
@@ -39,7 +39,7 @@ This means **zero load on pokeapi.co** regardless of traffic, and the edge cache
 
 ## Running Locally
 
-The app is a single file — no build, no dependencies. Just open `index.html` in a browser, or serve it with any static file server:
+The app is a single file: no build, no dependencies. Just open `index.html` in a browser, or serve it with any static file server:
 
 ```bash
 # Using Python
@@ -75,7 +75,7 @@ For a reference Worker implementation, see the one running at `api.fastdex.app`.
 
 ## Credits
 
-- **Data**: [PokéAPI](https://pokeapi.co/) — an open, comprehensive Pokémon REST API. FastDex uses their [static data dump](https://github.com/PokeAPI/api-data), self-hosted to avoid putting load on their servers.
+- **Data**: [PokéAPI](https://pokeapi.co/), an open, comprehensive Pokémon REST API. FastDex uses their [static data dump](https://github.com/PokeAPI/api-data), self-hosted to avoid putting load on their servers.
 - **Sprites**: Also from [PokéAPI](https://github.com/PokeAPI/sprites)
 - **Type matchups**: Gen 6+ chart (Fairy included)
 - **Nuzlocke level caps**: Based on community hardcore conventions
@@ -86,4 +86,4 @@ Pokémon and all associated names are trademarks of Nintendo / Game Freak / The 
 
 ## License
 
-MIT — do whatever you want with it. PRs and issues welcome.
+MIT. Do whatever you want with it. PRs and issues welcome.
