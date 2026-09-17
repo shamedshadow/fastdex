@@ -588,6 +588,7 @@
   }
   .team-score-pill.good { border-color: var(--success-border); color: var(--success-text); background: var(--success-bg); }
   .team-score-pill.bad { border-color: var(--danger-border); color: var(--danger-text); background: var(--danger-bg); }
+  .team-score-pill.info { border-style: dashed; color: var(--text-muted); }
   .team-slot-role {
     font-size: 9px;
     font-weight: 600;
@@ -5971,8 +5972,11 @@ function getMonMoveNames(mon) {
   return s;
 }
 
-function detectRoles(mon) {
-  const s = Object.fromEntries((mon.stats || []).map(x => [x.name, x.base]));
+// effBase (optional): effective base stats derived from a saved build, so roles reflect investment.
+function detectRoles(mon, effBase) {
+  const s = effBase
+    ? { hp: effBase.hp, attack: effBase.atk, defense: effBase.def, 'special-attack': effBase.spa, 'special-defense': effBase.spd, speed: effBase.spe }
+    : Object.fromEntries((mon.stats || []).map(x => [x.name, x.base]));
   const hp = s.hp || 0, atk = s.attack || 0, def = s.defense || 0;
   const spa = s['special-attack'] || 0, spd = s['special-defense'] || 0, spe = s.speed || 0;
   const bulk = hp + (def + spd) / 2;
@@ -6039,12 +6043,56 @@ async function renderTeam() {
       }
     } catch {}
   }
-  renderTeamScore(mons);
+  const bs = await computeTeamBuildStats(mons);
+  // Re-tag roles for built members using their actual spread.
+  mons.forEach((m, i) => {
+    const rolesEl = document.getElementById(`team-roles-${i}`);
+    const bm = bs.members[m.name];
+    if (rolesEl && bm && bm.built) rolesEl.innerHTML = detectRoles(m, bm.effBase).map(r => `<span class="team-slot-role">${r}</span>`).join(' ');
+  });
+  renderTeamScore(mons, bs);
   renderTeamAnalysis(mons);
-  renderTeamBuilds(mons);
+  renderTeamBuilds(mons, bs);
 }
 
-function renderTeamScore(mons) {
+function effRolesFor(m, bs) {
+  const bm = bs && bs.members[m.name];
+  return detectRoles(m, bm && bm.built ? bm.effBase : null);
+}
+
+// Actual stats for every member at one common level (the most common build level), so builds
+// can be compared. Unbuilt members are treated as neutral nature, 31 IVs, 0 EVs, no item.
+async function computeTeamBuildStats(mons) {
+  const out = { level: 50, count: 0, members: {} };
+  const built = mons.filter(m => TEAM_BUILDS[m.name]);
+  out.count = built.length;
+  if (built.length) {
+    const freq = {};
+    built.forEach(m => { const l = TEAM_BUILDS[m.name].level; freq[l] = (freq[l] || 0) + 1; });
+    out.level = +Object.keys(freq).sort((a, b) => freq[b] - freq[a] || b - a)[0];
+  }
+  await Promise.all(mons.map(async m => {
+    const b = TEAM_BUILDS[m.name] || null;
+    const s = b ? Object.assign({}, b, { level: out.level }) : Object.assign(defaultEvcalcState(), { level: out.level });
+    const needsEvo = !!(b && b.item && ITEM_STAT_MODS[b.item] && ITEM_STAT_MODS[b.item].nfe);
+    const canEvolve = needsEvo ? await canSpeciesEvolve(m) : null;
+    const raw = evcalcRawStats(m, s);
+    const mods = evcalcModsFor(m, s, canEvolve);
+    const finals = {};
+    const effBase = {};
+    DMG_STAT_KEYS.forEach(k => {
+      finals[k] = applyStatMult(raw[k], mods.mults[k]);
+      // The base stat a neutral 31 IV / 0 EV Pokémon would need to reach this number.
+      const base = baseStatOf(m, k);
+      const neutral = calcStat(base, 31, 0, out.level, 'Hardy', k);
+      effBase[k] = neutral ? Math.round(base * finals[k] / neutral) : base;
+    });
+    out.members[m.name] = { built: !!b, build: b, finals, mults: mods.mults, itemActive: mods.active, itemNote: mods.note, effBase, canEvolve };
+  }));
+  return out;
+}
+
+function renderTeamScore(mons, bs) {
   const el = document.getElementById('team-score');
   if (!mons || mons.length < 2) { el.classList.remove('on'); el.innerHTML = ''; return; }
   el.classList.add('on');
@@ -6066,13 +6114,16 @@ function renderTeamScore(mons) {
   }).length;
 
   const rolesUnion = new Set();
-  mons.forEach(m => detectRoles(m).forEach(r => rolesUnion.add(r)));
+  mons.forEach(m => effRolesFor(m, bs).forEach(r => rolesUnion.add(r)));
   const hasAttacker = [...rolesUnion].some(r => ['Sweeper', 'Setup', 'Glass cannon', 'Phys. atk', 'Sp. atk', 'Mixed'].includes(r));
   const hasDefender = [...rolesUnion].some(r => ['Wall', 'Tank', 'Cleric'].includes(r));
   const hasUtility = [...rolesUnion].some(r => ['Hazards', 'Pivot', 'Status', 'Cleric'].includes(r));
   const roleCount = [hasAttacker, hasDefender, hasUtility].filter(Boolean).length;
 
-  const speeds = mons.map(m => (m.stats.find(s => s.name === 'speed') || {}).base || 0);
+  const speeds = mons.map(m => {
+    const bm = bs && bs.members[m.name];
+    return bm && bm.built ? bm.effBase.spe : ((m.stats.find(s => s.name === 'speed') || {}).base || 0);
+  });
   const speedSpread = Math.max(...speeds) - Math.min(...speeds);
 
   let pts = 0;
@@ -6118,7 +6169,72 @@ function renderTeamScore(mons) {
     pts: spdPts,
   });
 
-  const pct = Math.min(100, Math.round((pts / 90) * 100));
+  // Build quality — only scored once at least one member has a saved build.
+  let maxPts = 90;
+  if (bs && bs.count > 0) {
+    maxPts += 10;
+    const lvl = bs.level;
+    const builtNames = mons.filter(m => bs.members[m.name] && bs.members[m.name].built).map(m => m.name);
+    const bm = n => bs.members[n];
+
+    // Speed control: benchmarks are a max-speed (Jolly, 252 EV) base-100 and base-130 at this level.
+    const fast100 = calcStat(100, 31, 252, lvl, 'Jolly', 'spe');
+    const fast130 = calcStat(130, 31, 252, lvl, 'Jolly', 'spe');
+    const over100 = builtNames.filter(n => bm(n).finals.spe >= fast100).length;
+    const over130 = builtNames.some(n => bm(n).finals.spe >= fast130);
+    const speedPts = (over100 ? 2 : 0) + (over130 ? 2 : 0);
+    pts += speedPts;
+    breakdown.push({
+      good: speedPts === 4, bad: speedPts === 0,
+      label: over100
+        ? `Speed control: ${over100} outspeed max base 100 (${fast100})${over130 ? `, one beats base 130 (${fast130})` : ''}`
+        : `Speed control: nobody reaches ${fast100} Spe (max base 100 at Lv ${lvl})`,
+      pts: speedPts,
+    });
+
+    // Bulk anchors: real HP×Def / HP×SpD vs a 100/100/100 Pokémon running 252 HP / 252 Def.
+    const bulkBench = calcStat(100, 31, 252, lvl, 'Hardy', 'hp') * calcStat(100, 31, 252, lvl, 'Hardy', 'def');
+    const physAnchor = builtNames.some(n => bm(n).finals.hp * bm(n).finals.def >= bulkBench);
+    const specAnchor = builtNames.some(n => bm(n).finals.hp * bm(n).finals.spd >= bulkBench);
+    const bulkPts = (physAnchor ? 2 : 0) + (specAnchor ? 2 : 0);
+    pts += bulkPts;
+    breakdown.push({
+      good: bulkPts === 4, bad: bulkPts === 0,
+      label: `Bulk anchors: physical ${physAnchor ? '✓' : '✗'} · special ${specAnchor ? '✓' : '✗'}`,
+      pts: bulkPts,
+    });
+
+    // Build hygiene: unspent EVs, dead items, duplicate items (item clause), too many Choice locks.
+    const issues = [];
+    const itemCounts = {};
+    builtNames.forEach(n => {
+      const b = bm(n).build;
+      const used = evTotal(b.evs);
+      if (used < EV_MAX_TOTAL - 2) issues.push(`${displayName(n)}: ${EV_MAX_TOTAL - used} EVs unspent`);
+      if (b.item) {
+        itemCounts[b.item] = (itemCounts[b.item] || 0) + 1;
+        if (ITEM_STAT_MODS[b.item] && !bm(n).itemActive) issues.push(`${displayName(n)}: ${itemDisplayName(b.item)} does nothing here`);
+      }
+    });
+    Object.keys(itemCounts).filter(i => itemCounts[i] > 1).forEach(i => issues.push(`${itemCounts[i]}× ${itemDisplayName(i)} (item clause)`));
+    const choiceLocked = builtNames.filter(n => /^choice-/.test(bm(n).build.item || '')).length;
+    if (choiceLocked > 2) issues.push(`${choiceLocked} Choice-locked members`);
+    const hygienePts = Math.max(0, 2 - issues.length);
+    pts += hygienePts;
+    breakdown.push({
+      good: issues.length === 0, bad: issues.length > 0,
+      label: issues.length ? `Build issues: ${issues.join(' · ')}` : 'Builds are clean: EVs spent, items live, no duplicates',
+      pts: hygienePts,
+    });
+
+    if (bs.count < mons.length) {
+      breakdown.push({ info: true, label: `${bs.count}/${mons.length} built — unbuilt members count as neutral Lv ${lvl}, 31 IV / 0 EV` });
+    }
+  } else {
+    breakdown.push({ info: true, label: 'Save builds from the EV/IV calc to score speed control, bulk and item hygiene (+10)' });
+  }
+
+  const pct = Math.min(100, Math.round((pts / maxPts) * 100));
   const grade = pct >= 90 ? 'S' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 55 ? 'C' : pct >= 40 ? 'D' : 'F';
   const blurb = grade === 'S' ? 'Elite team — tight coverage, balanced roles.'
     : grade === 'A' ? 'Strong team. Minor gaps, nothing scary.'
@@ -6137,6 +6253,7 @@ function renderTeamScore(mons) {
     </div>
     <div class="team-score-breakdown">
       ${breakdown.map(b => {
+        if (b.info) return `<span class="team-score-pill info">${b.label}</span>`;
         const cls = b.good ? 'good' : b.bad ? 'bad' : '';
         return `<span class="team-score-pill ${cls}">${b.label} <strong>+${b.pts}</strong></span>`;
       }).join('')}
@@ -9856,6 +9973,7 @@ const ITEM_STAT_MODS = {
   'metal-powder':   { def: 2, species: /^ditto(-|$)/ },
   'quick-powder':   { spe: 2, species: /^ditto(-|$)/ },
   'soul-dew':       { spa: 1.5, spd: 1.5, species: /^(latias|latios)(-|$)/ },
+  'booster-energy': { booster: true },   // Protosynthesis / Quark Drive: highest stat ×1.3 (Spe ×1.5)
 };
 
 // Does this Pokémon have a further evolution? null = unknown (fetch failed).
@@ -9879,30 +9997,55 @@ async function canSpeciesEvolve(mon) {
 }
 
 // Stat multipliers a held item grants this Pokémon, plus a note explaining why (or why not).
-function itemStatMods(itemName, mon, canEvolve) {
+// ctx: { canEvolve, ability, raw } — raw = the un-itemed final stats (Booster Energy picks the highest).
+function itemStatMods(itemName, mon, ctx) {
+  ctx = ctx || {};
   const mod = itemName && ITEM_STAT_MODS[itemName];
   if (!mod || !mon) return { mults: {}, note: '', active: false };
   const label = itemDisplayName(itemName);
   if (mod.species && !mod.species.test(mon.name)) {
     return { mults: {}, active: false, note: `${label} has no stat effect on ${displayName(mon.name)}.` };
   }
-  if (mod.nfe && canEvolve === false) {
+  if (mod.nfe && ctx.canEvolve === false) {
     return { mults: {}, active: false, note: `${label} only works on Pokémon that can still evolve — no effect on ${displayName(mon.name)}.` };
+  }
+  if (mod.booster) {
+    const ab = ctx.ability || '';
+    if (ab !== 'protosynthesis' && ab !== 'quark-drive') {
+      return { mults: {}, active: false, note: `${label} only triggers Protosynthesis or Quark Drive — ${displayName(mon.name)} needs one of those abilities.` };
+    }
+    // Highest non-HP stat wins; ties resolve Atk > Def > SpA > SpD > Spe, as in-game.
+    const rawStats = ctx.raw || {};
+    let best = 'atk';
+    for (const k of ['def', 'spa', 'spd', 'spe']) if ((rawStats[k] || 0) > (rawStats[best] || 0)) best = k;
+    const mult = best === 'spe' ? 1.5 : 1.3;
+    return { mults: { [best]: mult }, active: true, note: `${label}: ${formatSlug(ab)} boosts the highest stat — ${DMG_STAT_LABELS[best]} ×${mult}.` };
   }
   const mults = {};
   DMG_STAT_KEYS.forEach(k => { if (mod[k]) mults[k] = mod[k]; });
   const desc = DMG_STAT_KEYS.filter(k => mults[k]).map(k => `${DMG_STAT_LABELS[k]} ×${mults[k]}`).join(', ');
-  const caveat = mod.nfe && canEvolve == null ? ' (assuming it can still evolve)' : '';
+  const caveat = mod.nfe && ctx.canEvolve == null ? ' (assuming it can still evolve)' : '';
   return { mults, active: true, note: `${label}: ${desc} applied to final stats${caveat}.` };
 }
 
-function evcalcFinalStats(mon, s, canEvolve) {
+// floor(raw × mult) without float noise (205 × 1.3 is 266.4999… in JS, but 266 in-game).
+function applyStatMult(raw, mult) { return mult ? Math.floor(raw * mult + 1e-6) : raw; }
+
+// Final stats before any held item is applied.
+function evcalcRawStats(mon, s) {
   const out = {};
-  const { mults } = itemStatMods(s.item, mon, canEvolve);
-  DMG_STAT_KEYS.forEach(k => {
-    const raw = mon ? calcStat(baseStatOf(mon, k), s.ivs[k], s.evs[k], s.level, s.nature, k) : 0;
-    out[k] = mults[k] ? Math.floor(raw * mults[k]) : raw;
-  });
+  DMG_STAT_KEYS.forEach(k => { out[k] = mon ? calcStat(baseStatOf(mon, k), s.ivs[k], s.evs[k], s.level, s.nature, k) : 0; });
+  return out;
+}
+// Item modifiers for a build (needs the raw stats + ability for Booster Energy).
+function evcalcModsFor(mon, s, canEvolve) {
+  return itemStatMods(s.item, mon, { canEvolve, ability: s.ability, raw: evcalcRawStats(mon, s) });
+}
+function evcalcFinalStats(mon, s, canEvolve) {
+  const raw = evcalcRawStats(mon, s);
+  const { mults } = evcalcModsFor(mon, s, canEvolve);
+  const out = {};
+  DMG_STAT_KEYS.forEach(k => { out[k] = applyStatMult(raw[k], mults[k]); });
   return out;
 }
 
@@ -10029,7 +10172,7 @@ function renderEvcalcItemSuggestions(q) {
   if (!matches.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.innerHTML = matches.map(it => {
     const mod = ITEM_STAT_MODS[it.name];
-    const modTxt = mod ? DMG_STAT_KEYS.filter(k => mod[k]).map(k => `${DMG_STAT_LABELS[k]} ×${mod[k]}`).join(' ') : '';
+    const modTxt = !mod ? '' : mod.booster ? 'Top stat ×1.3' : DMG_STAT_KEYS.filter(k => mod[k]).map(k => `${DMG_STAT_LABELS[k]} ×${mod[k]}`).join(' ');
     return `<div data-name="${it.name}">
       <img src="${itemSpriteUrl(it.name)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
       <span>${itemDisplayName(it.name)}</span>
@@ -10053,7 +10196,7 @@ async function renderEvcalcItemPreview() {
   const el = document.getElementById('evcalc-item-preview');
   const noteEl = document.getElementById('evcalc-item-note');
   const name = EVCALC_STATE.item;
-  const mods = itemStatMods(name, EVCALC_MON, EVCALC_CAN_EVOLVE);
+  const mods = evcalcModsFor(EVCALC_MON, EVCALC_STATE, EVCALC_CAN_EVOLVE);
   noteEl.textContent = mods.note;
   noteEl.classList.toggle('off', !mods.active);
   if (!name) { el.innerHTML = ''; return; }
@@ -10081,7 +10224,7 @@ function renderEvcalcStats() {
   const s = EVCALC_STATE;
   const mon = EVCALC_MON;
   const nature = getNature(s.nature);
-  const { mults } = itemStatMods(s.item, mon, EVCALC_CAN_EVOLVE);
+  const { mults } = evcalcModsFor(mon, s, EVCALC_CAN_EVOLVE);
   document.getElementById('evcalc-stats').innerHTML = DMG_STAT_KEYS.map(k => {
     const base = baseStatOf(mon, k);
     const final = mon ? evcalcFinalCell(calcStat(base, s.ivs[k], s.evs[k], s.level, s.nature, k), mults[k]) : '—';
@@ -10098,10 +10241,27 @@ function renderEvcalcStats() {
   renderEvcalcBudget();
 }
 
+// Rewrite every Final cell in place (keeps input focus). Booster Energy can hop stats, so do all six.
+function refreshEvcalcFinals() {
+  const mon = EVCALC_MON;
+  const raw = evcalcRawStats(mon, EVCALC_STATE);
+  const { mults } = evcalcModsFor(mon, EVCALC_STATE, EVCALC_CAN_EVOLVE);
+  document.querySelectorAll('#evcalc-stats .evcalc-stat-row').forEach(row => {
+    const k = row.querySelector('[data-stat]') && row.querySelector('[data-stat]').dataset.stat;
+    const cell = row.querySelector('.evcalc-stat-final');
+    if (k && cell) cell.innerHTML = mon ? evcalcFinalCell(raw[k], mults[k]) : '—';
+  });
+  const note = document.getElementById('evcalc-item-note');
+  if (note && EVCALC_STATE.item) {
+    const mods = evcalcModsFor(mon, EVCALC_STATE, EVCALC_CAN_EVOLVE);
+    note.textContent = mods.note;
+    note.classList.toggle('off', !mods.active);
+  }
+}
 // Final-stat cell: the item-modified value with a small "×1.5" marker when an item applies.
 function evcalcFinalCell(raw, mult) {
   if (!mult) return String(raw);
-  return `${Math.floor(raw * mult)}<small>×${mult}</small>`;
+  return `${applyStatMult(raw, mult)}<small>×${mult}</small>`;
 }
 
 // Showdown-style set text for the current build.
@@ -10134,7 +10294,7 @@ function renderEvcalcResult() {
   }
   toTeam.disabled = false; copy.disabled = false;
   const finals = evcalcFinalStats(mon, s, EVCALC_CAN_EVOLVE);
-  const { mults } = itemStatMods(s.item, mon, EVCALC_CAN_EVOLVE);
+  const { mults } = evcalcModsFor(mon, s, EVCALC_CAN_EVOLVE);
   const nature = getNature(s.nature);
   summary.innerHTML = DMG_STAT_KEYS.map(k => {
     const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
@@ -10290,7 +10450,7 @@ function initEvcalc() {
   });
   document.getElementById('evcalc-ability').addEventListener('change', e => {
     EVCALC_STATE.ability = e.target.value;
-    saveEvcalcState(); renderEvcalcResult();
+    saveEvcalcState(); renderEvcalcItemPreview(); renderEvcalcStats(); renderEvcalcResult();
   });
   // Held item: searchable picker
   const itemInput = document.getElementById('evcalc-item');
@@ -10335,13 +10495,7 @@ function initEvcalc() {
     }
     saveEvcalcState();
     // Patch the row in place instead of re-rendering so the input keeps focus.
-    const finalEl = row.querySelector('.evcalc-stat-final');
-    if (finalEl) {
-      const { mults } = itemStatMods(EVCALC_STATE.item, EVCALC_MON, EVCALC_CAN_EVOLVE);
-      finalEl.innerHTML = EVCALC_MON
-        ? evcalcFinalCell(calcStat(baseStatOf(EVCALC_MON, k), EVCALC_STATE.ivs[k], EVCALC_STATE.evs[k], EVCALC_STATE.level, EVCALC_STATE.nature, k), mults[k])
-        : '—';
-    }
+    refreshEvcalcFinals();
     renderEvcalcBudget();
     renderEvcalcResult();
   });
@@ -10398,23 +10552,17 @@ function teamSlotBuildBadge(name) {
   return `<span class="team-slot-build" title="Saved build${b.item ? ` — ${itemDisplayName(b.item)}` : ''}">${inner}</span>`;
 }
 
-async function renderTeamBuilds(mons) {
+function renderTeamBuilds(mons, bs) {
   const el = document.getElementById('team-builds');
   const withBuild = team.filter(n => TEAM_BUILDS[n]);
   if (!withBuild.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = '';
-  const canEvolve = {};
-  await Promise.all(withBuild.map(async name => {
-    const mon = mons.find(m => m.name === name);
-    if (mon && TEAM_BUILDS[name].item && ITEM_STAT_MODS[TEAM_BUILDS[name].item] && ITEM_STAT_MODS[TEAM_BUILDS[name].item].nfe) {
-      canEvolve[name] = await canSpeciesEvolve(mon);
-    }
-  }));
   el.innerHTML = withBuild.map(name => {
     const b = TEAM_BUILDS[name];
     const mon = mons.find(m => m.name === name) || null;
-    const finals = mon ? evcalcFinalStats(mon, b, canEvolve[name]) : null;
-    const { mults } = itemStatMods(b.item, mon, canEvolve[name]);
+    const canEvolve = bs && bs.members[name] ? bs.members[name].canEvolve : null;
+    const finals = mon ? evcalcFinalStats(mon, b, canEvolve) : null;
+    const { mults } = mon ? evcalcModsFor(mon, b, canEvolve) : { mults: {} };
     const nature = getNature(b.nature);
     return `<div class="team-build-card" data-name="${name}">
       <div class="team-build-head">
