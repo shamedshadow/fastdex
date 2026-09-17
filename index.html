@@ -2627,6 +2627,142 @@
     .stat-row { margin-bottom: 3px; }
     .evo-tree { padding: 10px 12px; }
   }
+  /* ---- EV/IV calculator ---- */
+  .evcalc-view { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+  .evcalc-panels { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+  @media (max-width: 820px) { .evcalc-panels { grid-template-columns: minmax(0, 1fr); } }
+  .evcalc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-width: 0;
+  }
+  .evcalc-card h3 { margin: 0; font-size: 15px; }
+  .evcalc-card h4 { margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .evcalc-card .damage-grid input, .evcalc-card .damage-grid select { color: var(--text); }
+  .evcalc-item-preview { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); min-height: 24px; line-height: 1.3; }
+  .evcalc-item-preview img { width: 24px; height: 24px; image-rendering: pixelated; flex-shrink: 0; }
+  .evcalc-budget { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+  .evcalc-budget strong { color: var(--text); }
+  .evcalc-budget.over strong { color: var(--danger-text); }
+  .evcalc-budget-bar { height: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+  .evcalc-budget-bar-fill { height: 100%; background: var(--accent); transition: width 0.15s; }
+  .evcalc-budget-bar.over .evcalc-budget-bar-fill { background: var(--danger-border); }
+  .evcalc-stats-head, .evcalc-stat-row {
+    display: grid;
+    grid-template-columns: 34px 36px 54px minmax(0, 1fr) 58px 44px;
+    gap: 6px; align-items: center; padding: 4px 2px;
+  }
+  .evcalc-stats-head { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
+  .evcalc-stat-row { font-size: 12px; }
+  .evcalc-stat-row input[type="number"] {
+    width: 100%; padding: 3px 4px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    font: inherit; font-size: 12px; box-sizing: border-box; min-width: 0;
+  }
+  .evcalc-stat-row input[type="range"] { width: 100%; min-width: 0; accent-color: var(--accent); margin: 0; }
+  .evcalc-stat-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .evcalc-stat-row.boosted .evcalc-stat-label { color: #ff9e5e; }
+  .evcalc-stat-row.reduced .evcalc-stat-label { color: #78b3ff; }
+  .evcalc-stat-final { font-weight: 700; text-align: right; font-size: 13px; color: var(--text); }
+  .evcalc-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .evcalc-presets button, .team-build-actions button { font-size: 11px; padding: 3px 8px; }
+  .evcalc-solver-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .evcalc-solver-grid label { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .evcalc-solver-grid input {
+    width: 100%; padding: 4px 6px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    font: inherit; font-size: 13px; box-sizing: border-box; min-width: 0;
+  }
+  .evcalc-solver-result { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; font-size: 12px; }
+  .evcalc-solver-result:empty { display: none; }
+  .evcalc-solver-result > div { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 4px; text-align: center; color: var(--text); font-weight: 600; }
+  .evcalc-solver-result strong { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+  .evcalc-solver-result .bad { color: var(--danger-text); }
+  .evcalc-solver-note { font-size: 12px; color: var(--text-muted); }
+  .evcalc-solver-note:empty { display: none; }
+  .evcalc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .evcalc-actions .muted { margin-left: auto; font-size: 12px; }
+  .evcalc-export {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+    white-space: pre-wrap; margin: 0; color: var(--text); line-height: 1.45;
+  }
+  .evcalc-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .evcalc-summary > div { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 4px; text-align: center; }
+  .evcalc-summary strong { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+  .evcalc-summary span { font-size: 16px; font-weight: 700; color: var(--text); }
+  .evcalc-summary .boosted span { color: #ff9e5e; }
+  .evcalc-summary .reduced span { color: #78b3ff; }
+  @media (max-width: 600px) {
+    .evcalc-solver-grid, .evcalc-solver-result, .evcalc-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .evcalc-stats-head, .evcalc-stat-row { grid-template-columns: 30px 32px 48px minmax(0, 1fr) 52px 40px; gap: 4px; }
+  }
+
+  /* ---- Team builds (saved from the EV/IV calc) ---- */
+  .team-builds { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .team-build-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; min-width: 0;
+  }
+  .team-build-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .team-build-head .sprite { width: 40px; height: 40px; flex-shrink: 0; }
+  .team-build-title { font-weight: 600; font-size: 13px; text-transform: capitalize; color: var(--text); }
+  .team-build-sub { color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+  .team-build-item { display: inline-flex; align-items: center; gap: 3px; }
+  .team-build-item img { width: 20px; height: 20px; image-rendering: pixelated; }
+  .team-build-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+  .team-build-stats > div { background: var(--surface-2); border-radius: 4px; padding: 3px 2px; text-align: center; color: var(--text); font-weight: 600; }
+  .team-build-stats strong { display: block; font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; }
+  .team-build-stats em { font-style: normal; color: var(--text-hint); font-size: 9px; display: block; font-weight: 400; white-space: nowrap; }
+  .team-build-legend { font-size: 10px; color: var(--text-hint); text-align: right; }
+  .team-build-actions { display: flex; gap: 6px; margin-top: 2px; }
+  .team-slot-build {
+    position: absolute; bottom: 6px; right: 6px;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; line-height: 1; border-radius: 4px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .team-slot-build img { width: 18px; height: 18px; image-rendering: pixelated; }
+
+  /* ---- Item database ---- */
+  .items-view { margin-top: 14px; }
+  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+  .item-card {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    cursor: pointer; min-width: 0; transition: border-color 0.15s, background 0.15s;
+  }
+  .item-card:hover { border-color: var(--accent); background: var(--surface-2); }
+  .item-card img { width: 32px; height: 32px; image-rendering: pixelated; flex-shrink: 0; }
+  .item-card-body { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .item-card-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-card-cat { font-size: 11px; color: var(--text-hint); }
+  .item-card-effect { font-size: 11px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+  .item-card-effect:empty { display: none; }
+  .items-more { display: flex; justify-content: center; margin-top: 12px; }
+  .item-detail-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .item-detail-head img { width: 48px; height: 48px; image-rendering: pixelated; flex-shrink: 0; }
+  .item-detail-name { font-size: 18px; font-weight: 700; color: var(--text); }
+  .item-detail-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .item-chip { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); font-size: 11px; color: var(--text-muted); }
+  .item-detail-section { margin-top: 12px; }
+  .item-detail-section h4 { margin: 0 0 6px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .item-detail-section p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text); }
+  .item-detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+  .item-detail-grid > div { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; color: var(--text); }
+  .item-detail-grid strong { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+  .item-holders { display: flex; flex-wrap: wrap; gap: 6px; }
+  .item-holder {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 2px;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+    cursor: pointer; font-size: 12px; text-transform: capitalize; color: var(--text);
+  }
+  .item-holder:hover { border-color: var(--accent); }
+  .item-holder .sprite { width: 28px; height: 28px; }
+  .item-holder small { color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -2640,6 +2776,8 @@
       <button class="view-tab" data-view="catch" type="button">Catch 'Em All</button>
       <button class="view-tab" data-view="nuzlocke" type="button">Nuzlocke</button>
       <button class="view-tab" data-view="damage" type="button">Damage Calc</button>
+      <button class="view-tab" data-view="evcalc" type="button">EV/IV Calc</button>
+      <button class="view-tab" data-view="items" type="button">Items</button>
     </div>
     <h1 id="page-title">Pokémon Pokédex</h1>
     <p class="subtitle" id="page-subtitle">Stats, matchups, moves, evolutions. Data from PokéAPI, cached locally.</p>
@@ -2669,6 +2807,7 @@
     </div>
     <div class="team-empty-hint" id="team-empty-hint">Search above to add a Pokémon, or click Random to draft one.</div>
     <div class="team-slots" id="team-slots"></div>
+    <div class="team-builds" id="team-builds" style="display:none"></div>
     <div class="team-score" id="team-score"></div>
     <div class="team-analysis" id="team-analysis"></div>
   </div>
@@ -2965,6 +3104,78 @@
     </div>
   </div>
 
+  <div class="evcalc-view" id="evcalc-view" style="display:none">
+    <div class="evcalc-panels">
+      <div class="evcalc-card">
+        <h3>Pokémon &amp; spread</h3>
+        <div class="damage-species-row">
+          <div class="damage-species-input-wrap">
+            <input type="text" class="damage-species" id="evcalc-species" placeholder="Type species…" autocomplete="off" spellcheck="false">
+            <div class="damage-suggestions" id="evcalc-suggestions" style="display:none"></div>
+          </div>
+          <div class="damage-sprite" id="evcalc-sprite"></div>
+          <div class="damage-types" id="evcalc-types"></div>
+        </div>
+        <div class="damage-grid">
+          <label>Level<input type="number" id="evcalc-level" min="1" max="100" value="50"></label>
+          <label>Nature<select id="evcalc-nature"></select></label>
+          <label>Ability<select id="evcalc-ability"><option value="">Pick a species first…</option></select></label>
+          <label>Held item<select id="evcalc-item"><option value="">(none)</option></select></label>
+        </div>
+        <div class="evcalc-item-preview" id="evcalc-item-preview"></div>
+        <h4>EV presets</h4>
+        <div class="evcalc-presets" id="evcalc-presets"></div>
+        <div class="evcalc-budget" id="evcalc-budget"></div>
+        <div class="evcalc-budget-bar" id="evcalc-budget-bar"><div class="evcalc-budget-bar-fill" id="evcalc-budget-fill"></div></div>
+        <div class="evcalc-stats">
+          <div class="evcalc-stats-head"><span>Stat</span><span>Base</span><span>IV</span><span>EV</span><span></span><span>Final</span></div>
+          <div id="evcalc-stats"></div>
+        </div>
+        <div class="evcalc-actions">
+          <button class="team-action-btn" id="evcalc-max-ivs" type="button" title="Set every IV to 31">Max IVs</button>
+          <button class="team-action-btn" id="evcalc-zero-evs" type="button" title="Set every EV to 0">Clear EVs</button>
+          <button class="team-action-btn" id="evcalc-reset" type="button" title="Clear the whole calculator">Reset</button>
+        </div>
+      </div>
+      <div class="evcalc-card">
+        <h3>Find IVs from in-game stats</h3>
+        <p class="muted" style="margin:0">Enter the stats shown on the summary screen. They're matched against the level, nature and EVs set on the left, and each IV is narrowed to the values that produce exactly that number.</p>
+        <div class="evcalc-solver-grid" id="evcalc-solver-inputs"></div>
+        <div class="evcalc-actions">
+          <button class="team-action-btn primary" id="evcalc-solve" type="button">Calculate IVs</button>
+          <button class="team-action-btn" id="evcalc-solve-apply" type="button" disabled title="Copy the lowest matching IV of each stat into the spread">Apply to spread</button>
+        </div>
+        <div class="evcalc-solver-result" id="evcalc-solver-result"></div>
+        <div class="evcalc-solver-note" id="evcalc-solver-note"></div>
+        <h3 style="margin-top:6px">Result</h3>
+        <div class="evcalc-summary" id="evcalc-summary"></div>
+        <pre class="evcalc-export" id="evcalc-export">Pick a species to build a set.</pre>
+        <div class="evcalc-actions">
+          <button class="team-action-btn primary" id="evcalc-to-team" type="button" title="Save this build and add the Pokémon to your team">→ Team Builder</button>
+          <button class="team-action-btn" id="evcalc-copy" type="button" title="Copy the set in Showdown format">⎘ Copy set</button>
+          <span class="muted" id="evcalc-team-hint"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="items-view" id="items-view" style="display:none">
+    <div class="catch-controls">
+      <input type="text" id="items-filter" class="catch-filter-input" placeholder="Search items…" autocomplete="off" spellcheck="false">
+      <select id="items-pocket" class="catch-show-select"><option value="">All pockets</option></select>
+      <select id="items-category" class="catch-show-select"><option value="">All categories</option></select>
+      <select id="items-sort" class="catch-show-select">
+        <option value="id">Sort: Game order</option>
+        <option value="name">Sort: Name</option>
+        <option value="category">Sort: Category</option>
+      </select>
+      <span class="catch-progress" id="items-count"></span>
+    </div>
+    <div class="hint" id="items-hint" style="display:none"></div>
+    <div class="items-grid" id="items-grid"></div>
+    <div class="items-more" id="items-more" style="display:none"><button class="team-action-btn" id="items-more-btn" type="button">Show more</button></div>
+  </div>
+
   <div class="compare-view" id="compare-view" style="display:none">
     <div class="compare-slots">
       <div class="compare-slot" id="compare-slot-a" data-side="a"></div>
@@ -2978,8 +3189,8 @@
   <div class="modal-backdrop" id="team-import-modal" style="display:none">
     <div class="modal">
       <h3 class="modal-title">Import team</h3>
-      <p class="muted" style="margin:0 0 8px 0;font-size:13px">Paste a team code. This will replace your current team.</p>
-      <textarea id="team-import-input" class="modal-textarea" rows="3" placeholder="e.g. T1:charizard,garchomp,metagross…"></textarea>
+      <p class="muted" style="margin:0 0 8px 0;font-size:13px">Paste a team code. This will replace your current team and any saved builds.</p>
+      <textarea id="team-import-input" class="modal-textarea" rows="3" placeholder="e.g. T1:charizard,garchomp,metagross… (T2 codes also carry EV/IV builds)"></textarea>
       <div id="team-import-err" class="team-import-err" style="display:none"></div>
       <div class="modal-actions">
         <button class="team-action-btn" id="team-import-cancel" type="button">Cancel</button>
@@ -3102,6 +3313,16 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="item-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3 class="modal-title" id="item-modal-title">Item</h3>
+      <button type="button" class="modal-close" id="item-modal-close" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="item-modal-body"></div>
+  </div>
+</div>
+
 <script>
 // ---- config ----
 const POKEAPI = 'https://api.fastdex.app/api/v2';
@@ -3126,6 +3347,10 @@ const CK = {
   nuzlockeEnabled: `pokedex:nuzlocke-enabled:v1`,
   nuzlockePanel:   `pokedex:nuzlocke-panel:v1`,
   damageState:     `pokedex:damage-state:v1`,
+  itemsIndex:      `pokedex:items-index:v1`,
+  item:            n => `pokedex:item:v1:${n}`,
+  teamBuilds:      `pokedex:team-builds:v1`,
+  evcalcState:     `pokedex:evcalc-state:v1`,
 };
 const RECENT_LIMIT = 6;
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
@@ -3953,13 +4178,14 @@ const CRITICAL_LS_PREFIXES = [
   'pokedex:sprite-view:', 'pokedex:catch-panel:',
   'pokedex:nuzlocke-runs:', 'pokedex:nuzlocke-current:',
   'pokedex:nuzlocke-enabled:', 'pokedex:nuzlocke-panel:',
-  'pokedex:damage-state:',
+  'pokedex:damage-state:', 'pokedex:team-builds:', 'pokedex:evcalc-state:',
 ];
 // Keys that are re-fetchable caches — safe to evict under memory pressure.
 const EVICTABLE_LS_PREFIXES = [
   'pokedex:mon:', 'pokedex:evo:', 'pokedex:species:',
   'pokedex:ability:', 'pokedex:move:', 'pokedex:encounters:',
   'pokedex:types-index:', 'pokedex:egg-group:',
+  'pokedex:items-index:', 'pokedex:item:',
 ];
 function isCriticalLSKey(k) { return !!k && CRITICAL_LS_PREFIXES.some(p => k.startsWith(p)); }
 function evictCacheEntries(count) {
@@ -4012,6 +4238,20 @@ let TEAM_VIEW = false;
 let CURRENT_VIEW = 'dex';
 let team = (() => { const t = lsGet(CK.team); return Array.isArray(t) ? t.slice(0, 6) : []; })();
 const TEAM_MAX = 6;
+let TEAM_BUILDS = (() => { const b = lsGet(CK.teamBuilds); return (b && typeof b === 'object' && !Array.isArray(b)) ? b : {}; })();
+function saveTeamBuilds() { lsSet(CK.teamBuilds, TEAM_BUILDS); }
+function defaultEvcalcState() {
+  return {
+    name: '', level: 50, nature: 'Hardy', ability: '', item: '',
+    ivs: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
+    evs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
+  };
+}
+let EVCALC_STATE = (() => {
+  const s = lsGet(CK.evcalcState);
+  return (s && s.ivs && s.evs) ? Object.assign(defaultEvcalcState(), s) : defaultEvcalcState();
+})();
+function saveEvcalcState() { lsSet(CK.evcalcState, EVCALC_STATE); }
 let CATCH_DATA = (() => { const c = lsGet(CK.catch); return (c && typeof c === 'object' && !Array.isArray(c)) ? c : {}; })();
 const COMPARE = { a: null, b: null, activeSlot: 'a' };
 
@@ -5550,7 +5790,12 @@ function renderHeldItems() {
 }
 
 // ---- Team Builder ----
-function saveTeam() { lsSet(CK.team, team); }
+function saveTeam() {
+  lsSet(CK.team, team);
+  // Builds belong to team members; drop any left behind by a removal, clear or import.
+  const stale = Object.keys(TEAM_BUILDS).filter(n => !team.includes(n));
+  if (stale.length) { stale.forEach(n => { delete TEAM_BUILDS[n]; }); saveTeamBuilds(); }
+}
 
 function setView(v) {
   CURRENT_VIEW = v;
@@ -5560,7 +5805,9 @@ function setView(v) {
   const isCatch = (v === 'catch');
   const isNuzlocke = (v === 'nuzlocke');
   const isDamage = (v === 'damage');
-  const isOther = TEAM_VIEW || isCompare || isTypes || isCatch || isNuzlocke || isDamage;
+  const isEvcalc = (v === 'evcalc');
+  const isItems = (v === 'items');
+  const isOther = TEAM_VIEW || isCompare || isTypes || isCatch || isNuzlocke || isDamage || isEvcalc || isItems;
   document.querySelectorAll('.view-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.view === v));
   document.getElementById('result').style.display = isOther ? 'none' : (currentMon ? 'block' : 'none');
@@ -5570,9 +5817,11 @@ function setView(v) {
   document.getElementById('catch-view').style.display = isCatch ? 'block' : 'none';
   document.getElementById('nuzlocke-view').style.display = isNuzlocke ? 'block' : 'none';
   document.getElementById('damage-view').style.display = isDamage ? 'flex' : 'none';
+  document.getElementById('evcalc-view').style.display = isEvcalc ? 'flex' : 'none';
+  document.getElementById('items-view').style.display = isItems ? 'block' : 'none';
   document.getElementById('recent-row').style.display = isOther ? 'none' : '';
   const searchWrap = document.querySelector('.search-wrap');
-  if (searchWrap) searchWrap.style.display = (isTypes || isCatch || isNuzlocke || isDamage) ? 'none' : '';
+  if (searchWrap) searchWrap.style.display = (isTypes || isCatch || isNuzlocke || isDamage || isEvcalc || isItems) ? 'none' : '';
   const title = document.getElementById('page-title');
   const sub = document.getElementById('page-subtitle');
   if (TEAM_VIEW) {
@@ -5605,6 +5854,16 @@ function setView(v) {
     sub.textContent = 'Compute damage ranges between two Pokémon. Import party or leader mons from an active Nuzlocke.';
     initDamageCalc();
     renderDamageCalc();
+  } else if (isEvcalc) {
+    title.textContent = 'EV / IV Calculator';
+    sub.textContent = 'Plan a spread — nature, ability, held item, EVs and IVs — or work out IVs from in-game stats. Export builds to your team.';
+    initEvcalc();
+    renderEvcalcView();
+  } else if (isItems) {
+    title.textContent = 'Item Database';
+    sub.textContent = 'Every item in PokéAPI — search, filter by pocket or category, see effects and which wild Pokémon hold them.';
+    initItems();
+    renderItems(false);
   } else {
     title.textContent = 'Pokémon Pokédex';
     sub.textContent = 'Stats, matchups, moves, evolutions. Data from PokéAPI, cached locally.';
@@ -5733,6 +5992,7 @@ async function renderTeam() {
       slotHtml.push(`<div class="team-slot filled" data-name="${name}" title="Click to open in Pokédex">
         <button class="team-remove" data-remove="${name}" type="button" title="Remove">×</button>
         ${catchBadgesHtml(name)}
+        ${teamSlotBuildBadge(name)}
         <img class="sprite sprite-md" src="${spriteUrl(id, 'pixel', name)}" alt="" onerror="this.style.visibility='hidden'">
         <span class="team-slot-name">${displayName(name)}</span>
         <span class="team-slot-types" id="team-types-${i}"></span>
@@ -5758,6 +6018,7 @@ async function renderTeam() {
   }
   renderTeamScore(mons);
   renderTeamAnalysis(mons);
+  renderTeamBuilds(mons);
 }
 
 function renderTeamScore(mons) {
@@ -8984,23 +9245,80 @@ document.getElementById('team-clear').addEventListener('click', (e) => {
   }
 });
 
+// Team codes. T1 is names only; T2 appends each member's EV/IV-calc build after "@":
+//   T2:garchomp@lv50;n:jolly;a:sand-veil;i:sitrus-berry;ev:4/252/0/0/0/252;iv:31/19/30/30/30/31,pikachu
+// Stat order for ev/iv is HP/Atk/Def/SpA/SpD/Spe. Missing fields fall back to defaults on import.
+function encodeBuild(b) {
+  const parts = [`lv${b.level}`, `n:${b.nature.toLowerCase()}`];
+  if (b.ability) parts.push(`a:${b.ability}`);
+  if (b.item) parts.push(`i:${b.item}`);
+  if (DMG_STAT_KEYS.some(k => b.evs[k])) parts.push(`ev:${DMG_STAT_KEYS.map(k => b.evs[k] || 0).join('/')}`);
+  if (DMG_STAT_KEYS.some(k => b.ivs[k] !== 31)) parts.push(`iv:${DMG_STAT_KEYS.map(k => b.ivs[k]).join('/')}`);
+  return parts.join(';');
+}
+
+function decodeBuild(spec) {
+  const b = defaultEvcalcState();
+  delete b.name;
+  const slug = s => s.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const stats = (s, max) => {
+    const nums = s.split('/').map(x => parseInt(x, 10));
+    if (nums.length !== 6 || nums.some(n => Number.isNaN(n) || n < 0 || n > max)) return null;
+    const out = {};
+    DMG_STAT_KEYS.forEach((k, i) => { out[k] = nums[i]; });
+    return out;
+  };
+  for (const raw of spec.split(';')) {
+    const part = raw.trim();
+    if (!part) continue;
+    const lv = part.match(/^lv(\d+)$/i);
+    if (lv) { b.level = clampInt(lv[1], 1, 100, 50); continue; }
+    const kv = part.match(/^([a-z]+):(.*)$/i);
+    if (!kv) continue;
+    const key = kv[1].toLowerCase(), val = kv[2].trim();
+    if (key === 'n') {
+      const nat = NATURES.find(n => n[0].toLowerCase() === val.toLowerCase());
+      if (nat) b.nature = nat[0];
+    } else if (key === 'a') b.ability = slug(val);
+    else if (key === 'i') b.item = slug(val);
+    else if (key === 'ev') { const s = stats(val, EV_MAX_STAT); if (s && evTotal(s) <= EV_MAX_TOTAL) b.evs = s; }
+    else if (key === 'iv') { const s = stats(val, 31); if (s) b.ivs = s; }
+  }
+  return b;
+}
+
 function buildTeamCode() {
-  return 'T1:' + team.join(',');
+  const hasBuilds = team.some(n => TEAM_BUILDS[n]);
+  if (!hasBuilds) return 'T1:' + team.join(',');
+  return 'T2:' + team.map(n => TEAM_BUILDS[n] ? `${n}@${encodeBuild(TEAM_BUILDS[n])}` : n).join(',');
 }
 
 function parseTeamCode(code) {
   if (!code) return null;
   const trimmed = code.trim();
   let body = trimmed;
-  const m = trimmed.match(/^T1\s*[:=]\s*(.*)$/i);
-  if (m) body = m[1];
-  const names = body.split(/[\s,]+/).filter(Boolean).map(n => n.toLowerCase().replace(/\s+/g, '-'));
-  if (names.length === 0) return null;
-  const invalid = names.filter(n => !SEARCH_INDEX[n]);
-  const resolved = names.map(n => SEARCH_INDEX[n]).filter(Boolean).slice(0, TEAM_MAX);
+  const m = trimmed.match(/^T([12])\s*[:=]\s*(.*)$/is);
+  const v2 = !!m && m[1] === '2';
+  if (m) body = m[2];
+  // T2 entries carry ";"-separated fields, so only commas/newlines separate members there.
+  const entries = body.split(v2 ? /[,\n]+/ : /[\s,]+/).map(e => e.trim()).filter(Boolean);
+  if (entries.length === 0) return null;
+  const invalid = [];
+  const resolved = [];
+  const builds = {};
+  for (const entry of entries) {
+    const at = entry.indexOf('@');
+    const rawName = (at >= 0 ? entry.slice(0, at) : entry).trim().toLowerCase().replace(/\s+/g, '-');
+    const name = SEARCH_INDEX[rawName];
+    if (!name) { invalid.push(rawName); continue; }
+    if (resolved.includes(name) || resolved.length >= TEAM_MAX) continue;
+    resolved.push(name);
+    if (at >= 0 && entry.slice(at + 1).trim()) builds[name] = decodeBuild(entry.slice(at + 1));
+  }
   if (resolved.length === 0) return { error: 'No recognizable Pokémon names in that code.' };
-  if (invalid.length) return { team: resolved, warning: `Skipped unknown: ${invalid.join(', ')}` };
-  return { team: resolved };
+  const out = { team: resolved, builds };
+  if (invalid.length) out.warning = `Skipped unknown: ${invalid.join(', ')}`;
+  return out;
 }
 
 document.getElementById('team-export').addEventListener('click', async () => {
@@ -9012,7 +9330,7 @@ document.getElementById('team-export').addEventListener('click', async () => {
   const code = buildTeamCode();
   try {
     await navigator.clipboard.writeText(code);
-    flashButton(btn, '✓ Copied code', 'good');
+    flashButton(btn, code.startsWith('T2:') ? '✓ Copied (with builds)' : '✓ Copied code', 'good');
   } catch {
     prompt('Copy this team code:', code);
   }
@@ -9048,12 +9366,15 @@ document.getElementById('team-import-go').addEventListener('click', () => {
     return;
   }
   team = result.team.slice(0, TEAM_MAX);
+  TEAM_BUILDS = result.builds || {};
+  saveTeamBuilds();
   saveTeam();
   renderTeam();
   updateTeamAddBtn();
   document.getElementById('team-import-modal').style.display = 'none';
   const importBtn = document.getElementById('team-import');
-  flashButton(importBtn, `✓ Loaded ${team.length}`, 'good');
+  const nBuilds = Object.keys(TEAM_BUILDS).length;
+  flashButton(importBtn, `✓ Loaded ${team.length}${nBuilds ? ` (${nBuilds} build${nBuilds === 1 ? '' : 's'})` : ''}`, 'good');
 });
 
 document.getElementById('stats-view-toggle').addEventListener('click', () => {
@@ -9185,6 +9506,770 @@ document.getElementById('locations-container').addEventListener('click', (e) => 
 window.addEventListener('popstate', () => {
   const p = new URL(location.href).searchParams.get('p');
   if (p) selectPokemon(p, { updateUrl: false });
+});
+
+// ---- Item database ----
+const ITEM_SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items';
+const ITEM_POCKET_LABELS = {
+  misc: 'Items', medicine: 'Medicine', pokeballs: 'Poké Balls', machines: 'TMs & HMs',
+  berries: 'Berries', mail: 'Mail', battle: 'Battle items', key: 'Key items',
+};
+// Categories offered as held items in the EV/IV calc (plus everything in the Berries pocket).
+// PokéAPI's "holdable" attribute is unreliable (it flags Poké Balls), so we go by category.
+const HELD_ITEM_CATEGORIES = new Set([
+  'held-items', 'choice', 'effort-training', 'bad-held-items', 'training', 'plates', 'species-specific',
+  'type-enhancement', 'type-protection', 'mega-stones', 'memories', 'z-crystals', 'jewels', 'scarves',
+]);
+let ITEM_INDEX = null;          // [{ name, id, category, pocket }]
+let ITEM_INDEX_PROMISE = null;
+
+function itemDisplayName(slug) { return formatSlug(slug).replace(/\bPoke\b/g, 'Poké'); }
+function itemSpriteUrl(name) { return `${ITEM_SPRITE_BASE}/${name}.png`; }
+function isHeldItem(entry) { return !!entry && (HELD_ITEM_CATEGORIES.has(entry.category) || entry.pocket === 'berries'); }
+function idFromUrl(url) { const m = String(url || '').match(/\/(\d+)\/?$/); return m ? parseInt(m[1], 10) : null; }
+
+async function loadItemIndex() {
+  if (ITEM_INDEX) return ITEM_INDEX;
+  if (ITEM_INDEX_PROMISE) return ITEM_INDEX_PROMISE;
+  ITEM_INDEX_PROMISE = (async () => {
+    const cached = lsGet(CK.itemsIndex);
+    if (Array.isArray(cached) && cached.length && cached[0].category) { ITEM_INDEX = cached; return cached; }
+    const [list, cats] = await Promise.all([
+      apiGet(`${POKEAPI}/item?limit=5000`),
+      apiGet(`${POKEAPI}/item-category?limit=200`),
+    ]);
+    // Each category response carries its pocket and item list, so ~54 small requests
+    // give us category + pocket for every item without fetching each item.
+    const catByItem = {};
+    const names = cats.results.map(c => c.name);
+    const BATCH = 8;
+    for (let i = 0; i < names.length; i += BATCH) {
+      const chunk = await Promise.all(names.slice(i, i + BATCH).map(c =>
+        apiGet(`${POKEAPI}/item-category/${c}`).catch(() => null)));
+      chunk.forEach(cat => {
+        if (!cat) return;
+        const pocket = cat.pocket ? cat.pocket.name : '';
+        (cat.items || []).forEach(it => { catByItem[it.name] = { category: cat.name, pocket }; });
+      });
+    }
+    const index = list.results.map(r => {
+      const c = catByItem[r.name] || { category: 'other', pocket: 'misc' };
+      return { name: r.name, id: idFromUrl(r.url), category: c.category, pocket: c.pocket };
+    }).filter(r => r.id != null);
+    ITEM_INDEX = index;
+    lsSet(CK.itemsIndex, index);
+    return index;
+  })();
+  try { return await ITEM_INDEX_PROMISE; }
+  finally { ITEM_INDEX_PROMISE = null; }
+}
+
+async function getItem(name) {
+  const key = CK.item(name);
+  const cached = lsGet(key);
+  if (cached) return cached;
+  const d = await apiGet(`${POKEAPI}/item/${name}`);
+  const en = arr => (arr || []).filter(e => e.language && e.language.name === 'en');
+  const stripLinks = s => (s || '').replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1');
+  const eff = en(d.effect_entries)[0];
+  const flavors = en(d.flavor_text_entries);
+  const flavor = flavors.length ? flavors[flavors.length - 1] : null;
+  const item = {
+    name: d.name,
+    id: d.id,
+    displayName: (en(d.names)[0] || {}).name || itemDisplayName(d.name),
+    category: d.category ? d.category.name : '',
+    cost: d.cost,
+    flingPower: d.fling_power,
+    flingEffect: d.fling_effect ? d.fling_effect.name : null,
+    attributes: (d.attributes || []).map(a => a.name),
+    shortEffect: eff ? stripLinks(eff.short_effect) : '',
+    effect: eff ? stripLinks(eff.effect) : '',
+    flavor: flavor ? { text: flavor.text.replace(/\s+/g, ' ').trim(), vg: flavor.version_group.name } : null,
+    sprite: (d.sprites && d.sprites.default) || null,
+    heldBy: (d.held_by_pokemon || []).map(h => ({
+      name: h.pokemon.name,
+      rarity: Math.max(0, ...(h.version_details || []).map(v => v.rarity || 0)),
+    })),
+    machines: Array.from(new Set((d.machines || []).map(m => m.version_group.name))),
+  };
+  lsSet(key, item);
+  return item;
+}
+
+// Lazy detail loading for visible cards — a few requests in flight at a time.
+const ITEM_FETCH_QUEUE = [];
+let ITEM_FETCH_ACTIVE = 0;
+function queueItemFetch(name, cb) { ITEM_FETCH_QUEUE.push({ name, cb }); pumpItemQueue(); }
+function pumpItemQueue() {
+  while (ITEM_FETCH_ACTIVE < 4 && ITEM_FETCH_QUEUE.length) {
+    const job = ITEM_FETCH_QUEUE.shift();
+    ITEM_FETCH_ACTIVE++;
+    getItem(job.name).then(job.cb, () => {}).finally(() => { ITEM_FETCH_ACTIVE--; pumpItemQueue(); });
+  }
+}
+function fillItemCardEffect(card) {
+  const el = card.querySelector('.item-card-effect');
+  if (!el) return;
+  queueItemFetch(card.dataset.name, item => {
+    if (!card.isConnected) return;
+    el.textContent = item.shortEffect || (item.flavor && item.flavor.text) || '';
+    const nameEl = card.querySelector('.item-card-name');
+    if (nameEl && item.displayName) nameEl.textContent = item.displayName;
+  });
+}
+
+const ITEMS_PAGE = 96;
+let ITEMS_SHOWN = 0;
+let ITEMS_FILTERED = [];
+let itemsInit = false;
+let itemsObserver = null;
+
+function itemCardHtml(it) {
+  return `<div class="item-card" data-name="${it.name}" title="${itemDisplayName(it.name)}">
+    <img src="${itemSpriteUrl(it.name)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div class="item-card-body">
+      <span class="item-card-name">${itemDisplayName(it.name)}</span>
+      <span class="item-card-cat">${formatSlug(it.category)}</span>
+      <span class="item-card-effect"></span>
+    </div>
+  </div>`;
+}
+
+function populateItemSelects() {
+  const pocketSel = document.getElementById('items-pocket');
+  const cur = pocketSel.value;
+  const pockets = Object.keys(ITEM_POCKET_LABELS).filter(p => ITEM_INDEX.some(it => it.pocket === p));
+  pocketSel.innerHTML = '<option value="">All pockets</option>' +
+    pockets.map(p => `<option value="${p}">${ITEM_POCKET_LABELS[p]}</option>`).join('');
+  pocketSel.value = pockets.includes(cur) ? cur : '';
+  populateItemCategorySelect();
+}
+function populateItemCategorySelect() {
+  const pocket = document.getElementById('items-pocket').value;
+  const catSel = document.getElementById('items-category');
+  const cur = catSel.value;
+  const cats = Array.from(new Set(ITEM_INDEX.filter(it => !pocket || it.pocket === pocket).map(it => it.category))).sort();
+  catSel.innerHTML = '<option value="">All categories</option>' +
+    cats.map(c => `<option value="${c}">${formatSlug(c)}</option>`).join('');
+  catSel.value = cats.includes(cur) ? cur : '';
+}
+
+function itemMatches(it, q, pocket, cat) {
+  if (pocket && it.pocket !== pocket) return false;
+  if (cat && it.category !== cat) return false;
+  if (q && !normalize(it.name).includes(q)) return false;
+  return true;
+}
+
+async function renderItems(append) {
+  const grid = document.getElementById('items-grid');
+  const hint = document.getElementById('items-hint');
+  const more = document.getElementById('items-more');
+  const countEl = document.getElementById('items-count');
+  if (!ITEM_INDEX) {
+    hint.style.display = '';
+    hint.innerHTML = '<span class="loading"></span>Loading item database from PokéAPI…';
+    try { await loadItemIndex(); }
+    catch (e) { hint.textContent = `Couldn't load items — ${e.message}`; return; }
+    hint.style.display = 'none';
+    populateItemSelects();
+  }
+  const prevShown = append ? ITEMS_SHOWN - ITEMS_PAGE : 0;
+  if (!append) {
+    ITEMS_SHOWN = ITEMS_PAGE;
+    ITEM_FETCH_QUEUE.length = 0;
+    const q = normalize(document.getElementById('items-filter').value || '');
+    const pocket = document.getElementById('items-pocket').value;
+    const cat = document.getElementById('items-category').value;
+    const sort = document.getElementById('items-sort').value;
+    let list = ITEM_INDEX.filter(it => itemMatches(it, q, pocket, cat));
+    if (sort === 'name') list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
+    else if (sort === 'category') list = list.slice().sort((a, b) => a.category.localeCompare(b.category) || a.id - b.id);
+    ITEMS_FILTERED = list;
+  }
+  const list = ITEMS_FILTERED;
+  countEl.innerHTML = `<strong>${list.length}</strong> item${list.length === 1 ? '' : 's'}`;
+  const html = list.slice(prevShown, ITEMS_SHOWN).map(itemCardHtml).join('');
+  if (append) grid.insertAdjacentHTML('beforeend', html);
+  else grid.innerHTML = html || '<div class="counters-hint">No items match.</div>';
+  more.style.display = list.length > ITEMS_SHOWN ? '' : 'none';
+  Array.from(grid.querySelectorAll('.item-card')).slice(prevShown).forEach(c => itemsObserver.observe(c));
+}
+
+async function openItemModal(name) {
+  const modal = document.getElementById('item-modal');
+  const title = document.getElementById('item-modal-title');
+  const body = document.getElementById('item-modal-body');
+  title.textContent = itemDisplayName(name);
+  body.innerHTML = '<div class="counters-hint"><span class="loading"></span> Loading item…</div>';
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  try {
+    const it = await getItem(name);
+    const idx = ITEM_INDEX ? ITEM_INDEX.find(x => x.name === name) : null;
+    title.textContent = it.displayName;
+    const holders = it.heldBy.filter(h => NAME_TO_ID[h.name]).map(h =>
+      `<span class="item-holder" data-name="${h.name}">${spriteImg(NAME_TO_ID[h.name], 'sprite-sm', h.name)}${displayName(h.name)}${h.rarity ? `<small>${h.rarity}%</small>` : ''}</span>`
+    ).join('');
+    const chips = [formatSlug(it.category || 'other')];
+    if (idx && idx.pocket) chips.push(`${ITEM_POCKET_LABELS[idx.pocket] || formatSlug(idx.pocket)} pocket`);
+    it.attributes.forEach(a => chips.push(formatSlug(a)));
+    body.innerHTML = `
+      <div class="item-detail-head">
+        ${it.sprite ? `<img src="${it.sprite}" alt="" onerror="this.style.visibility='hidden'">` : ''}
+        <div>
+          <div class="item-detail-name">${escapeHtml(it.displayName)}</div>
+          <div class="item-detail-meta">${chips.map(c => `<span class="item-chip">${c}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="item-detail-grid">
+        <div><strong>Cost</strong>${it.cost ? `₽${it.cost.toLocaleString()}` : '—'}</div>
+        <div><strong>Fling power</strong>${it.flingPower || '—'}</div>
+        <div><strong>Fling effect</strong>${it.flingEffect ? formatSlug(it.flingEffect) : '—'}</div>
+        <div><strong>Item #</strong>${it.id}</div>
+      </div>
+      ${(it.effect || it.shortEffect) ? `<div class="item-detail-section"><h4>Effect</h4><p>${escapeHtml(it.effect || it.shortEffect)}</p></div>` : ''}
+      ${it.flavor ? `<div class="item-detail-section"><h4>In-game description <span class="muted">(${formatSlug(it.flavor.vg)})</span></h4><p>${escapeHtml(it.flavor.text)}</p></div>` : ''}
+      ${it.machines.length ? `<div class="item-detail-section"><h4>Machine in</h4><p>${it.machines.map(formatSlug).join(', ')}</p></div>` : ''}
+      ${holders ? `<div class="item-detail-section"><h4>Held by wild Pokémon</h4><div class="item-holders">${holders}</div></div>` : ''}
+      ${isHeldItem(idx) ? `<div class="item-detail-section"><button class="team-action-btn" type="button" data-evcalc-item="${it.name}">Use in EV/IV calc →</button></div>` : ''}
+    `;
+  } catch (e) {
+    body.innerHTML = `<div class="counters-hint">Couldn't load this item — ${escapeHtml(e.message)}</div>`;
+  }
+}
+function closeItemModal() {
+  document.getElementById('item-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function initItems() {
+  if (itemsInit) return;
+  itemsInit = true;
+  itemsObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      itemsObserver.unobserve(en.target);
+      fillItemCardEffect(en.target);
+    });
+  }, { rootMargin: '240px' });
+  let t;
+  document.getElementById('items-filter').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => renderItems(false), 80); });
+  document.getElementById('items-pocket').addEventListener('change', () => { populateItemCategorySelect(); renderItems(false); });
+  document.getElementById('items-category').addEventListener('change', () => renderItems(false));
+  document.getElementById('items-sort').addEventListener('change', () => renderItems(false));
+  document.getElementById('items-more-btn').addEventListener('click', () => { ITEMS_SHOWN += ITEMS_PAGE; renderItems(true); });
+  document.getElementById('items-grid').addEventListener('click', e => {
+    const card = e.target.closest('.item-card');
+    if (card) openItemModal(card.dataset.name);
+  });
+  document.getElementById('item-modal-close').addEventListener('click', closeItemModal);
+  document.getElementById('item-modal').addEventListener('click', e => { if (e.target.id === 'item-modal') closeItemModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('item-modal').style.display !== 'none') closeItemModal();
+  });
+  document.getElementById('item-modal-body').addEventListener('click', e => {
+    const holder = e.target.closest('.item-holder');
+    if (holder) {
+      closeItemModal();
+      setView('dex');
+      searchInput.value = displayName(holder.dataset.name);
+      selectPokemon(holder.dataset.name);
+      return;
+    }
+    const useBtn = e.target.closest('[data-evcalc-item]');
+    if (useBtn) {
+      closeItemModal();
+      EVCALC_STATE.item = useBtn.dataset.evcalcItem;
+      saveEvcalcState();
+      setView('evcalc');
+    }
+  });
+}
+
+// ---- EV / IV calculator ----
+const EV_MAX_TOTAL = 510;
+const EV_MAX_STAT = 252;
+const EVCALC_PRESETS = [
+  { label: 'Physical sweeper', evs: { hp:4,   atk:252, def:0,   spa:0,   spd:0,   spe:252 } },
+  { label: 'Special sweeper',  evs: { hp:4,   atk:0,   def:0,   spa:252, spd:0,   spe:252 } },
+  { label: 'Bulky physical',   evs: { hp:252, atk:252, def:4,   spa:0,   spd:0,   spe:0   } },
+  { label: 'Bulky special',    evs: { hp:252, atk:0,   def:4,   spa:252, spd:0,   spe:0   } },
+  { label: 'Physical wall',    evs: { hp:252, atk:0,   def:252, spa:0,   spd:4,   spe:0   } },
+  { label: 'Special wall',     evs: { hp:252, atk:0,   def:4,   spa:0,   spd:252, spe:0   } },
+  { label: 'Mixed wall',       evs: { hp:252, atk:0,   def:128, spa:0,   spd:128, spe:0   } },
+];
+let EVCALC_MON = null;
+let EVCALC_SOLVED = null;   // { statKey: [minIv, maxIv] | null } from the IV solver
+let evcalcInit = false;
+
+function evTotal(evs) { return DMG_STAT_KEYS.reduce((t, k) => t + (evs[k] || 0), 0); }
+function clampInt(v, lo, hi, fallback) {
+  const n = parseInt(v, 10);
+  if (Number.isNaN(n)) return fallback;
+  return Math.max(lo, Math.min(hi, n));
+}
+function evcalcFinalStats(mon, s) {
+  const out = {};
+  DMG_STAT_KEYS.forEach(k => { out[k] = mon ? calcStat(baseStatOf(mon, k), s.ivs[k], s.evs[k], s.level, s.nature, k) : 0; });
+  return out;
+}
+
+// Which IVs (0–31) produce exactly `target` for this stat at the given level / nature / EV?
+function solveIvRange(base, ev, level, nature, key, target) {
+  let lo = null, hi = null;
+  for (let iv = 0; iv <= 31; iv++) {
+    if (calcStat(base, iv, ev, level, nature, key) === target) {
+      if (lo === null) lo = iv;
+      hi = iv;
+    }
+  }
+  return lo === null ? null : [lo, hi];
+}
+
+async function ensureEvcalcMon() {
+  const name = EVCALC_STATE.name;
+  if (!name) { EVCALC_MON = null; return null; }
+  if (EVCALC_MON && EVCALC_MON.name === name) return EVCALC_MON;
+  try { EVCALC_MON = await getMon(name); }
+  catch { EVCALC_MON = null; }
+  return EVCALC_MON;
+}
+
+function renderEvcalcSuggestions(q) {
+  const el = document.getElementById('evcalc-suggestions');
+  const nq = normalize(q);
+  if (!nq) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const matches = [];
+  for (const name of ALL_NAMES) {
+    if (!isDamageFormVisible(name)) continue;
+    if (normalize(name).includes(nq)) { matches.push(name); if (matches.length >= 12) break; }
+  }
+  if (!matches.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = matches.map(n => `<div data-name="${n}">${displayName(n)}</div>`).join('');
+  el.style.display = 'block';
+}
+
+async function pickEvcalcSpecies(name) {
+  EVCALC_STATE.name = name;
+  EVCALC_STATE.ability = '';
+  EVCALC_SOLVED = null;
+  saveEvcalcState();
+  EVCALC_MON = null;
+  await ensureEvcalcMon();
+  renderEvcalc();
+}
+
+function populateEvcalcSelects() {
+  document.getElementById('evcalc-nature').innerHTML = NATURES.map(n => {
+    const suffix = n[1] ? ` (+${DMG_STAT_LABELS[n[1]]} / −${DMG_STAT_LABELS[n[2]]})` : ' (neutral)';
+    return `<option value="${n[0]}">${n[0]}${suffix}</option>`;
+  }).join('');
+  document.getElementById('evcalc-presets').innerHTML = EVCALC_PRESETS.map((p, i) => {
+    const spread = DMG_STAT_KEYS.filter(k => p.evs[k]).map(k => `${p.evs[k]} ${DMG_STAT_LABELS[k]}`).join(' / ');
+    return `<button class="team-action-btn" type="button" data-preset="${i}" title="${spread}">${p.label}</button>`;
+  }).join('');
+  document.getElementById('evcalc-solver-inputs').innerHTML = DMG_STAT_KEYS.map(k =>
+    `<label>${DMG_STAT_LABELS[k]}<input type="number" min="1" max="999" data-solve="${k}" placeholder="—"></label>`).join('');
+}
+
+function updateEvcalcAbilities() {
+  const sel = document.getElementById('evcalc-ability');
+  const mon = EVCALC_MON;
+  if (!mon) { sel.innerHTML = '<option value="">Pick a species first…</option>'; sel.value = ''; return; }
+  sel.innerHTML = mon.abilities.map(a =>
+    `<option value="${a.name}">${formatSlug(a.name)}${a.hidden ? ' (Hidden)' : ''}</option>`).join('');
+  if (!EVCALC_STATE.ability || !mon.abilities.some(a => a.name === EVCALC_STATE.ability)) {
+    EVCALC_STATE.ability = mon.abilities.length ? mon.abilities[0].name : '';
+    saveEvcalcState();
+  }
+  sel.value = EVCALC_STATE.ability;
+}
+
+function updateEvcalcItems() {
+  const sel = document.getElementById('evcalc-item');
+  const cur = EVCALC_STATE.item || '';
+  if (!ITEM_INDEX) {
+    sel.innerHTML = '<option value="">(none)</option>' +
+      (cur ? `<option value="${cur}">${itemDisplayName(cur)}</option>` : '') +
+      '<option value="" disabled>Loading items…</option>';
+    sel.value = cur;
+    return;
+  }
+  const groups = {};
+  ITEM_INDEX.filter(isHeldItem).forEach(it => {
+    const g = it.pocket === 'berries' ? 'Berries' : formatSlug(it.category);
+    (groups[g] = groups[g] || []).push(it);
+  });
+  const order = Object.keys(groups).sort((a, b) =>
+    a === 'Held Items' ? -1 : b === 'Held Items' ? 1 : a.localeCompare(b));
+  sel.innerHTML = '<option value="">(none)</option>' + order.map(g =>
+    `<optgroup label="${g}">${groups[g].slice().sort((a, b) => a.name.localeCompare(b.name)).map(it =>
+      `<option value="${it.name}">${itemDisplayName(it.name)}</option>`).join('')}</optgroup>`).join('');
+  if (cur && !sel.querySelector(`option[value="${cur}"]`)) {
+    sel.insertAdjacentHTML('afterbegin', `<option value="${cur}">${itemDisplayName(cur)}</option>`);
+  }
+  sel.value = cur;
+}
+
+async function renderEvcalcItemPreview() {
+  const el = document.getElementById('evcalc-item-preview');
+  const name = EVCALC_STATE.item;
+  if (!name) { el.innerHTML = ''; return; }
+  el.innerHTML = `<img src="${itemSpriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'"><span>${itemDisplayName(name)}</span>`;
+  try {
+    const it = await getItem(name);
+    if (EVCALC_STATE.item !== name) return;
+    el.innerHTML = `<img src="${it.sprite || itemSpriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'">` +
+      `<span><strong>${escapeHtml(it.displayName)}</strong> — ${escapeHtml(it.shortEffect || (it.flavor && it.flavor.text) || 'No effect text.')}</span>`;
+  } catch {}
+}
+
+function renderEvcalcBudget() {
+  const total = evTotal(EVCALC_STATE.evs);
+  const over = total > EV_MAX_TOTAL;
+  const budget = document.getElementById('evcalc-budget');
+  budget.classList.toggle('over', over);
+  document.getElementById('evcalc-budget-bar').classList.toggle('over', over);
+  budget.innerHTML = `<span>EVs used: <strong>${total} / ${EV_MAX_TOTAL}</strong>${over ? ' — over the limit!' : ''}</span>` +
+    `<span>${Math.max(0, EV_MAX_TOTAL - total)} remaining</span>`;
+  document.getElementById('evcalc-budget-fill').style.width = `${Math.min(100, total / EV_MAX_TOTAL * 100)}%`;
+}
+
+function renderEvcalcStats() {
+  const s = EVCALC_STATE;
+  const mon = EVCALC_MON;
+  const nature = getNature(s.nature);
+  document.getElementById('evcalc-stats').innerHTML = DMG_STAT_KEYS.map(k => {
+    const base = baseStatOf(mon, k);
+    const final = mon ? calcStat(base, s.ivs[k], s.evs[k], s.level, s.nature, k) : 0;
+    const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
+    return `<div class="evcalc-stat-row ${cls}">
+      <span class="evcalc-stat-label">${DMG_STAT_LABELS[k]}</span>
+      <span>${base || '—'}</span>
+      <input type="number" data-stat="${k}" data-field="iv" min="0" max="31" value="${s.ivs[k]}" aria-label="${DMG_STAT_LABELS[k]} IV">
+      <input type="range" data-stat="${k}" data-field="ev-range" min="0" max="${EV_MAX_STAT}" step="4" value="${s.evs[k]}" aria-label="${DMG_STAT_LABELS[k]} EV slider">
+      <input type="number" data-stat="${k}" data-field="ev" min="0" max="${EV_MAX_STAT}" step="4" value="${s.evs[k]}" aria-label="${DMG_STAT_LABELS[k]} EV">
+      <span class="evcalc-stat-final">${final || '—'}</span>
+    </div>`;
+  }).join('');
+  renderEvcalcBudget();
+}
+
+// Showdown-style set text for the current build.
+function evcalcSetText(s) {
+  const evs = DMG_STAT_KEYS.filter(k => s.evs[k] > 0).map(k => `${s.evs[k]} ${DMG_STAT_LABELS[k]}`);
+  const ivs = DMG_STAT_KEYS.filter(k => s.ivs[k] < 31).map(k => `${s.ivs[k]} ${DMG_STAT_LABELS[k]}`);
+  const lines = [`${displayName(s.name)}${s.item ? ` @ ${itemDisplayName(s.item)}` : ''}`];
+  if (s.ability) lines.push(`Ability: ${formatSlug(s.ability)}`);
+  if (s.level !== 100) lines.push(`Level: ${s.level}`);
+  if (evs.length) lines.push(`EVs: ${evs.join(' / ')}`);
+  lines.push(`${s.nature} Nature`);
+  if (ivs.length) lines.push(`IVs: ${ivs.join(' / ')}`);
+  return lines.join('\n');
+}
+
+function renderEvcalcResult() {
+  const s = EVCALC_STATE;
+  const mon = EVCALC_MON;
+  const summary = document.getElementById('evcalc-summary');
+  const exportEl = document.getElementById('evcalc-export');
+  const hint = document.getElementById('evcalc-team-hint');
+  const toTeam = document.getElementById('evcalc-to-team');
+  const copy = document.getElementById('evcalc-copy');
+  if (!mon) {
+    summary.innerHTML = '';
+    exportEl.textContent = 'Pick a species to build a set.';
+    toTeam.disabled = true; copy.disabled = true;
+    hint.textContent = '';
+    return;
+  }
+  toTeam.disabled = false; copy.disabled = false;
+  const finals = evcalcFinalStats(mon, s);
+  const nature = getNature(s.nature);
+  summary.innerHTML = DMG_STAT_KEYS.map(k => {
+    const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
+    return `<div class="${cls}"><strong>${DMG_STAT_LABELS[k]}</strong><span>${finals[k]}</span></div>`;
+  }).join('');
+  exportEl.textContent = evcalcSetText(s);
+  const onTeam = team.includes(mon.name);
+  hint.textContent = onTeam
+    ? (TEAM_BUILDS[mon.name] ? 'On your team — exporting updates its saved build.' : 'On your team — exporting saves this build to it.')
+    : (team.length >= TEAM_MAX ? 'Team is full — remove someone first to export.' : `Exporting adds ${displayName(mon.name)} to your team with this build.`);
+}
+
+function renderEvcalcSolver() {
+  const res = document.getElementById('evcalc-solver-result');
+  const note = document.getElementById('evcalc-solver-note');
+  const apply = document.getElementById('evcalc-solve-apply');
+  if (!EVCALC_SOLVED) { res.innerHTML = ''; note.textContent = ''; apply.disabled = true; return; }
+  const entries = DMG_STAT_KEYS.filter(k => EVCALC_SOLVED[k] !== undefined);
+  res.innerHTML = entries.map(k => {
+    const r = EVCALC_SOLVED[k];
+    const txt = r === null ? 'no match' : r[0] === r[1] ? `${r[0]}` : `${r[0]}–${r[1]}`;
+    return `<div class="${r === null ? 'bad' : ''}"><strong>${DMG_STAT_LABELS[k]}</strong>${txt}</div>`;
+  }).join('');
+  const bad = entries.filter(k => EVCALC_SOLVED[k] === null);
+  const wide = entries.filter(k => EVCALC_SOLVED[k] && EVCALC_SOLVED[k][0] !== EVCALC_SOLVED[k][1]);
+  const parts = [];
+  if (bad.length) parts.push(`No IV reproduces the ${bad.map(k => DMG_STAT_LABELS[k]).join(', ')} value — double-check the level, nature and EVs.`);
+  if (wide.length) parts.push('Ranges narrow at higher levels; re-check after levelling up. Applying uses the lowest IV in each range.');
+  note.textContent = parts.join(' ');
+  apply.disabled = !entries.some(k => EVCALC_SOLVED[k]);
+}
+
+function solveEvcalcIvs() {
+  const mon = EVCALC_MON;
+  if (!mon) return;
+  const s = EVCALC_STATE;
+  const solved = {};
+  let any = false;
+  document.querySelectorAll('#evcalc-solver-inputs input[data-solve]').forEach(inp => {
+    const k = inp.dataset.solve;
+    const v = parseInt(inp.value, 10);
+    if (Number.isNaN(v)) return;
+    any = true;
+    solved[k] = solveIvRange(baseStatOf(mon, k), s.evs[k], s.level, s.nature, k, v);
+  });
+  EVCALC_SOLVED = any ? solved : null;
+  renderEvcalcSolver();
+}
+
+function applySolvedIvs() {
+  if (!EVCALC_SOLVED) return;
+  DMG_STAT_KEYS.forEach(k => { if (EVCALC_SOLVED[k]) EVCALC_STATE.ivs[k] = EVCALC_SOLVED[k][0]; });
+  saveEvcalcState();
+  renderEvcalcStats();
+  renderEvcalcResult();
+}
+
+function renderEvcalc() {
+  const s = EVCALC_STATE;
+  document.getElementById('evcalc-species').value = s.name ? displayName(s.name) : '';
+  document.getElementById('evcalc-level').value = s.level;
+  document.getElementById('evcalc-nature').value = s.nature;
+  const sprite = document.getElementById('evcalc-sprite');
+  const types = document.getElementById('evcalc-types');
+  if (EVCALC_MON) {
+    sprite.innerHTML = spriteImg(EVCALC_MON.id, 'sprite-md', EVCALC_MON.name);
+    types.innerHTML = EVCALC_MON.types.map(typePill).join('');
+  } else {
+    sprite.innerHTML = '';
+    types.innerHTML = '';
+  }
+  updateEvcalcAbilities();
+  updateEvcalcItems();
+  renderEvcalcItemPreview();
+  renderEvcalcStats();
+  renderEvcalcSolver();
+  renderEvcalcResult();
+}
+
+async function renderEvcalcView() {
+  await ensureEvcalcMon();
+  renderEvcalc();
+  if (!ITEM_INDEX) loadItemIndex().then(updateEvcalcItems).catch(() => {});
+}
+
+function exportEvcalcToTeam() {
+  const mon = EVCALC_MON;
+  if (!mon) return { ok: false, msg: 'Pick a species first' };
+  if (evTotal(EVCALC_STATE.evs) > EV_MAX_TOTAL) return { ok: false, msg: `EVs exceed ${EV_MAX_TOTAL}` };
+  if (!team.includes(mon.name)) {
+    if (team.length >= TEAM_MAX) return { ok: false, msg: 'Team is full' };
+    team.push(mon.name);
+  }
+  const s = EVCALC_STATE;
+  TEAM_BUILDS[mon.name] = {
+    level: s.level, nature: s.nature, ability: s.ability, item: s.item,
+    ivs: Object.assign({}, s.ivs), evs: Object.assign({}, s.evs),
+  };
+  saveTeamBuilds();
+  saveTeam();
+  updateTeamAddBtn();
+  renderEvcalcResult();
+  return { ok: true };
+}
+
+function loadBuildIntoEvcalc(name) {
+  const b = TEAM_BUILDS[name];
+  if (!b) return;
+  EVCALC_STATE = Object.assign(defaultEvcalcState(), {
+    name, level: b.level, nature: b.nature, ability: b.ability, item: b.item,
+    ivs: Object.assign({ hp:31, atk:31, def:31, spa:31, spd:31, spe:31 }, b.ivs),
+    evs: Object.assign({ hp:0, atk:0, def:0, spa:0, spd:0, spe:0 }, b.evs),
+  });
+  EVCALC_SOLVED = null;
+  EVCALC_MON = null;
+  saveEvcalcState();
+  setView('evcalc');
+}
+
+function initEvcalc() {
+  if (evcalcInit) return;
+  evcalcInit = true;
+  populateEvcalcSelects();
+
+  const input = document.getElementById('evcalc-species');
+  const suggestions = document.getElementById('evcalc-suggestions');
+  input.addEventListener('input', () => renderEvcalcSuggestions(input.value));
+  input.addEventListener('focus', () => { if (input.value) renderEvcalcSuggestions(input.value); });
+  input.addEventListener('blur', () => setTimeout(() => { suggestions.style.display = 'none'; }, 150));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const first = suggestions.querySelector('[data-name]');
+      if (first) { e.preventDefault(); pickEvcalcSpecies(first.dataset.name); suggestions.style.display = 'none'; }
+    } else if (e.key === 'Escape') {
+      suggestions.style.display = 'none';
+    }
+  });
+  suggestions.addEventListener('mousedown', e => {
+    const row = e.target.closest('[data-name]');
+    if (!row) return;
+    e.preventDefault();
+    pickEvcalcSpecies(row.dataset.name);
+    suggestions.style.display = 'none';
+  });
+
+  document.getElementById('evcalc-level').addEventListener('input', e => {
+    EVCALC_STATE.level = clampInt(e.target.value, 1, 100, 50);
+    saveEvcalcState(); renderEvcalcStats(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-nature').addEventListener('change', e => {
+    EVCALC_STATE.nature = e.target.value;
+    saveEvcalcState(); renderEvcalcStats(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-ability').addEventListener('change', e => {
+    EVCALC_STATE.ability = e.target.value;
+    saveEvcalcState(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-item').addEventListener('change', e => {
+    EVCALC_STATE.item = e.target.value;
+    saveEvcalcState(); renderEvcalcItemPreview(); renderEvcalcResult();
+  });
+
+  // IV / EV inputs are delegated — the rows re-render whenever the species changes.
+  const stats = document.getElementById('evcalc-stats');
+  stats.addEventListener('input', e => {
+    const inp = e.target;
+    const k = inp.dataset.stat, field = inp.dataset.field;
+    if (!k || !field) return;
+    const row = inp.closest('.evcalc-stat-row');
+    if (field === 'iv') {
+      EVCALC_STATE.ivs[k] = clampInt(inp.value, 0, 31, 31);
+    } else {
+      const v = clampInt(inp.value, 0, EV_MAX_STAT, 0);
+      EVCALC_STATE.evs[k] = v;
+      const twin = row.querySelector(field === 'ev' ? '[data-field="ev-range"]' : '[data-field="ev"]');
+      if (twin) twin.value = v;
+    }
+    saveEvcalcState();
+    // Patch the row in place instead of re-rendering so the input keeps focus.
+    const finalEl = row.querySelector('.evcalc-stat-final');
+    if (finalEl) finalEl.textContent = EVCALC_MON
+      ? calcStat(baseStatOf(EVCALC_MON, k), EVCALC_STATE.ivs[k], EVCALC_STATE.evs[k], EVCALC_STATE.level, EVCALC_STATE.nature, k)
+      : '—';
+    renderEvcalcBudget();
+    renderEvcalcResult();
+  });
+  // On commit, re-render so out-of-range typed values snap to what was actually stored.
+  stats.addEventListener('change', () => renderEvcalcStats());
+
+  document.getElementById('evcalc-presets').addEventListener('click', e => {
+    const btn = e.target.closest('[data-preset]');
+    if (!btn) return;
+    EVCALC_STATE.evs = Object.assign({}, EVCALC_PRESETS[+btn.dataset.preset].evs);
+    saveEvcalcState(); renderEvcalcStats(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-max-ivs').addEventListener('click', () => {
+    DMG_STAT_KEYS.forEach(k => { EVCALC_STATE.ivs[k] = 31; });
+    saveEvcalcState(); renderEvcalcStats(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-zero-evs').addEventListener('click', () => {
+    DMG_STAT_KEYS.forEach(k => { EVCALC_STATE.evs[k] = 0; });
+    saveEvcalcState(); renderEvcalcStats(); renderEvcalcResult();
+  });
+  document.getElementById('evcalc-reset').addEventListener('click', () => {
+    EVCALC_STATE = defaultEvcalcState();
+    EVCALC_MON = null;
+    EVCALC_SOLVED = null;
+    saveEvcalcState();
+    document.querySelectorAll('#evcalc-solver-inputs input').forEach(i => { i.value = ''; });
+    renderEvcalc();
+  });
+
+  document.getElementById('evcalc-solve').addEventListener('click', solveEvcalcIvs);
+  document.getElementById('evcalc-solver-inputs').addEventListener('keydown', e => { if (e.key === 'Enter') solveEvcalcIvs(); });
+  document.getElementById('evcalc-solve-apply').addEventListener('click', applySolvedIvs);
+
+  document.getElementById('evcalc-to-team').addEventListener('click', e => {
+    const btn = e.currentTarget;
+    const res = exportEvcalcToTeam();
+    if (res.ok) flashButton(btn, '✓ Saved to team', 'good');
+    else flashButton(btn, `✕ ${res.msg}`, 'bad');
+  });
+  document.getElementById('evcalc-copy').addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    if (!EVCALC_MON) return;
+    const text = evcalcSetText(EVCALC_STATE);
+    try { await navigator.clipboard.writeText(text); flashButton(btn, '✓ Copied', 'good'); }
+    catch { prompt('Copy this set:', text); }
+  });
+}
+
+// ---- Team builds (saved from the EV/IV calc) ----
+function teamSlotBuildBadge(name) {
+  const b = TEAM_BUILDS[name];
+  if (!b) return '';
+  const inner = b.item ? `<img src="${itemSpriteUrl(b.item)}" alt="" onerror="this.parentNode.textContent='⚙'">` : '⚙';
+  return `<span class="team-slot-build" title="Saved build${b.item ? ` — ${itemDisplayName(b.item)}` : ''}">${inner}</span>`;
+}
+
+function renderTeamBuilds(mons) {
+  const el = document.getElementById('team-builds');
+  const withBuild = team.filter(n => TEAM_BUILDS[n]);
+  if (!withBuild.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = '';
+  el.innerHTML = withBuild.map(name => {
+    const b = TEAM_BUILDS[name];
+    const mon = mons.find(m => m.name === name) || null;
+    const finals = mon ? evcalcFinalStats(mon, b) : null;
+    const nature = getNature(b.nature);
+    return `<div class="team-build-card" data-name="${name}">
+      <div class="team-build-head">
+        ${spriteImg(NAME_TO_ID[name], 'sprite-md', name)}
+        <div style="min-width:0">
+          <div class="team-build-title">${displayName(name)} <span class="muted">Lv ${b.level}</span></div>
+          <div class="team-build-sub">
+            <span>${b.nature}</span>
+            ${b.ability ? `<span>${formatSlug(b.ability)}</span>` : ''}
+            ${b.item ? `<span class="team-build-item"><img src="${itemSpriteUrl(b.item)}" alt="" onerror="this.style.display='none'">${itemDisplayName(b.item)}</span>` : '<span>No item</span>'}
+          </div>
+        </div>
+      </div>
+      <div class="team-build-stats">${DMG_STAT_KEYS.map(k => {
+        const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
+        return `<div class="${cls}" title="${DMG_STAT_LABELS[k]}: ${b.evs[k] || 0} EVs, ${b.ivs[k]} IVs"><strong>${DMG_STAT_LABELS[k]}</strong>${finals ? finals[k] : '—'}<em>${b.evs[k] || 0} / ${b.ivs[k]}</em></div>`;
+      }).join('')}</div>
+      <div class="team-build-legend">final stat · EVs / IVs</div>
+      <div class="team-build-actions">
+        <button class="team-action-btn" type="button" data-edit-build="${name}">✎ Edit in EV/IV calc</button>
+        <button class="team-action-btn" type="button" data-remove-build="${name}">Remove build</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('team-builds').addEventListener('click', e => {
+  const edit = e.target.closest('[data-edit-build]');
+  if (edit) { loadBuildIntoEvcalc(edit.dataset.editBuild); return; }
+  const rm = e.target.closest('[data-remove-build]');
+  if (rm) {
+    delete TEAM_BUILDS[rm.dataset.removeBuild];
+    saveTeamBuilds();
+    renderTeam();
+  }
 });
 
 // ---- bootstrap ----

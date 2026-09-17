@@ -16,6 +16,8 @@ A fast, modern Pokédex web app. Search 1,000+ Pokémon, analyze matchups, build
 - **Catch 'Em All** — Track your living dex (regular + shiny) with per-generation progress bars and stats. Import/export JSON.
 - **Nuzlocke Mode** — Run tracker with party/box/graveyard, encounter logging, level caps, rules enforcement, gym leader spoilers, and multi-run support. Covers every mainline game from Red/Blue to Scarlet/Violet.
 - **Damage Calculator** — Full Gen 6+ damage formula with natures, IVs/EVs, stat stages, abilities, items, weather, terrain, screens, and crits. Imports Pokémon directly from your Nuzlocke runs.
+- **EV/IV Calculator** — Plan a spread with nature, ability, held item, EVs (510 budget) and IVs, see final stats, or solve IVs from in-game stats. Export builds straight into the Team Builder or copy them in Showdown format.
+- **Item Database** — Every item in PokéAPI with sprites, effects, descriptions, cost, fling data and which wild Pokémon hold them. Filter by pocket or category.
 
 All data is cached aggressively in `localStorage` — after first load, the app works almost instantly.
 
