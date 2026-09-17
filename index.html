@@ -2642,7 +2642,23 @@
   .evcalc-card h3 { margin: 0; font-size: 15px; }
   .evcalc-card h4 { margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
   .evcalc-card .damage-grid input, .evcalc-card .damage-grid select { color: var(--text); }
+  .evcalc-item-wrap { position: relative; }
+  .evcalc-item-wrap input { padding-right: 26px; }
+  .evcalc-item-clear {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; border-radius: 50%; border: none; padding: 0;
+    background: var(--surface-2); color: var(--text-muted); font-size: 13px; line-height: 1; cursor: pointer;
+  }
+  .evcalc-item-clear:hover { color: var(--text); background: var(--border-strong); }
+  .evcalc-item-suggestions div { display: flex; align-items: center; gap: 8px; }
+  .evcalc-item-suggestions img { width: 22px; height: 22px; image-rendering: pixelated; flex-shrink: 0; }
+  .evcalc-item-suggestions small { color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+  .evcalc-item-suggestions .evcalc-item-mod { color: #ff9e5e; font-size: 11px; }
   .evcalc-item-preview { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); min-height: 24px; line-height: 1.3; }
+  .evcalc-item-note { font-size: 12px; color: #ff9e5e; }
+  .evcalc-item-note.off { color: var(--text-muted); }
+  .evcalc-item-note:empty { display: none; }
+  .evcalc-stat-final small, .evcalc-summary small, .team-build-stats small { display: block; font-size: 9px; font-weight: 500; color: #ff9e5e; }
   .evcalc-item-preview img { width: 24px; height: 24px; image-rendering: pixelated; flex-shrink: 0; }
   .evcalc-budget { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
   .evcalc-budget strong { color: var(--text); }
@@ -3120,9 +3136,16 @@
           <label>Level<input type="number" id="evcalc-level" min="1" max="100" value="50"></label>
           <label>Nature<select id="evcalc-nature"></select></label>
           <label>Ability<select id="evcalc-ability"><option value="">Pick a species first…</option></select></label>
-          <label>Held item<select id="evcalc-item"><option value="">(none)</option></select></label>
+          <label>Held item
+            <div class="evcalc-item-wrap">
+              <input type="text" id="evcalc-item" placeholder="Search held items…" autocomplete="off" spellcheck="false">
+              <button type="button" class="evcalc-item-clear" id="evcalc-item-clear" title="Remove item" aria-label="Remove item" style="display:none">×</button>
+              <div class="damage-suggestions evcalc-item-suggestions" id="evcalc-item-suggestions" style="display:none"></div>
+            </div>
+          </label>
         </div>
         <div class="evcalc-item-preview" id="evcalc-item-preview"></div>
+        <div class="evcalc-item-note" id="evcalc-item-note"></div>
         <h4>EV presets</h4>
         <div class="evcalc-presets" id="evcalc-presets"></div>
         <div class="evcalc-budget" id="evcalc-budget"></div>
@@ -9810,9 +9833,76 @@ function clampInt(v, lo, hi, fallback) {
   if (Number.isNaN(n)) return fallback;
   return Math.max(lo, Math.min(hi, n));
 }
-function evcalcFinalStats(mon, s) {
+// Held items that change stats outright (not damage-only items like Life Orb).
+// `species` restricts the item to matching Pokémon; `nfe` means "only if it can still evolve".
+const ITEM_STAT_MODS = {
+  'choice-band':    { atk: 1.5 },
+  'choice-specs':   { spa: 1.5 },
+  'choice-scarf':   { spe: 1.5 },
+  'assault-vest':   { spd: 1.5 },
+  'eviolite':       { def: 1.5, spd: 1.5, nfe: true },
+  'iron-ball':      { spe: 0.5 },
+  'macho-brace':    { spe: 0.5 },
+  'power-weight':   { spe: 0.5 },
+  'power-bracer':   { spe: 0.5 },
+  'power-belt':     { spe: 0.5 },
+  'power-lens':     { spe: 0.5 },
+  'power-band':     { spe: 0.5 },
+  'power-anklet':   { spe: 0.5 },
+  'light-ball':     { atk: 2, spa: 2, species: /^pikachu(-|$)/ },
+  'thick-club':     { atk: 2, species: /^(cubone|marowak)(-|$)/ },
+  'deep-sea-tooth': { spa: 2, species: /^clamperl(-|$)/ },
+  'deep-sea-scale': { spd: 2, species: /^clamperl(-|$)/ },
+  'metal-powder':   { def: 2, species: /^ditto(-|$)/ },
+  'quick-powder':   { spe: 2, species: /^ditto(-|$)/ },
+  'soul-dew':       { spa: 1.5, spd: 1.5, species: /^(latias|latios)(-|$)/ },
+};
+
+// Does this Pokémon have a further evolution? null = unknown (fetch failed).
+const CAN_EVOLVE_CACHE = {};
+async function canSpeciesEvolve(mon) {
+  if (!mon) return null;
+  if (mon.name in CAN_EVOLVE_CACHE) return CAN_EVOLVE_CACHE[mon.name];
+  try {
+    const species = await getSpecies(mon);
+    const tree = await getEvolution(mon);
+    let result = false;
+    if (tree) {
+      const base = species.base_name || mon.name;
+      const find = n => n.name === base ? n : n.children.map(find).find(Boolean);
+      const node = find(tree);
+      result = !!(node && node.children.length);
+    }
+    CAN_EVOLVE_CACHE[mon.name] = result;
+    return result;
+  } catch { return null; }
+}
+
+// Stat multipliers a held item grants this Pokémon, plus a note explaining why (or why not).
+function itemStatMods(itemName, mon, canEvolve) {
+  const mod = itemName && ITEM_STAT_MODS[itemName];
+  if (!mod || !mon) return { mults: {}, note: '', active: false };
+  const label = itemDisplayName(itemName);
+  if (mod.species && !mod.species.test(mon.name)) {
+    return { mults: {}, active: false, note: `${label} has no stat effect on ${displayName(mon.name)}.` };
+  }
+  if (mod.nfe && canEvolve === false) {
+    return { mults: {}, active: false, note: `${label} only works on Pokémon that can still evolve — no effect on ${displayName(mon.name)}.` };
+  }
+  const mults = {};
+  DMG_STAT_KEYS.forEach(k => { if (mod[k]) mults[k] = mod[k]; });
+  const desc = DMG_STAT_KEYS.filter(k => mults[k]).map(k => `${DMG_STAT_LABELS[k]} ×${mults[k]}`).join(', ');
+  const caveat = mod.nfe && canEvolve == null ? ' (assuming it can still evolve)' : '';
+  return { mults, active: true, note: `${label}: ${desc} applied to final stats${caveat}.` };
+}
+
+function evcalcFinalStats(mon, s, canEvolve) {
   const out = {};
-  DMG_STAT_KEYS.forEach(k => { out[k] = mon ? calcStat(baseStatOf(mon, k), s.ivs[k], s.evs[k], s.level, s.nature, k) : 0; });
+  const { mults } = itemStatMods(s.item, mon, canEvolve);
+  DMG_STAT_KEYS.forEach(k => {
+    const raw = mon ? calcStat(baseStatOf(mon, k), s.ivs[k], s.evs[k], s.level, s.nature, k) : 0;
+    out[k] = mults[k] ? Math.floor(raw * mults[k]) : raw;
+  });
   return out;
 }
 
@@ -9828,12 +9918,15 @@ function solveIvRange(base, ev, level, nature, key, target) {
   return lo === null ? null : [lo, hi];
 }
 
+let EVCALC_CAN_EVOLVE = null;
 async function ensureEvcalcMon() {
   const name = EVCALC_STATE.name;
-  if (!name) { EVCALC_MON = null; return null; }
+  if (!name) { EVCALC_MON = null; EVCALC_CAN_EVOLVE = null; return null; }
   if (EVCALC_MON && EVCALC_MON.name === name) return EVCALC_MON;
-  try { EVCALC_MON = await getMon(name); }
-  catch { EVCALC_MON = null; }
+  try {
+    EVCALC_MON = await getMon(name);
+    EVCALC_CAN_EVOLVE = await canSpeciesEvolve(EVCALC_MON);
+  } catch { EVCALC_MON = null; EVCALC_CAN_EVOLVE = null; }
   return EVCALC_MON;
 }
 
@@ -9887,35 +9980,82 @@ function updateEvcalcAbilities() {
   sel.value = EVCALC_STATE.ability;
 }
 
+// Items shown when the search box is focused but empty.
+const EVCALC_COMMON_ITEMS = [
+  'choice-scarf', 'choice-band', 'choice-specs', 'life-orb', 'leftovers', 'focus-sash', 'assault-vest',
+  'eviolite', 'rocky-helmet', 'heavy-duty-boots', 'booster-energy', 'sitrus-berry', 'lum-berry',
+  'black-sludge', 'weakness-policy', 'air-balloon', 'expert-belt',
+];
+let HELD_ITEM_LIST = null;
+function heldItemList() {
+  if (!ITEM_INDEX) return null;
+  if (!HELD_ITEM_LIST) HELD_ITEM_LIST = ITEM_INDEX.filter(isHeldItem).slice().sort((a, b) => a.name.localeCompare(b.name));
+  return HELD_ITEM_LIST;
+}
+
+// Sync the item search box with state (the picker itself is the suggestion list).
 function updateEvcalcItems() {
-  const sel = document.getElementById('evcalc-item');
+  const input = document.getElementById('evcalc-item');
+  const clear = document.getElementById('evcalc-item-clear');
   const cur = EVCALC_STATE.item || '';
-  if (!ITEM_INDEX) {
-    sel.innerHTML = '<option value="">(none)</option>' +
-      (cur ? `<option value="${cur}">${itemDisplayName(cur)}</option>` : '') +
-      '<option value="" disabled>Loading items…</option>';
-    sel.value = cur;
+  input.value = cur ? itemDisplayName(cur) : '';
+  clear.style.display = cur ? '' : 'none';
+}
+
+function renderEvcalcItemSuggestions(q) {
+  const el = document.getElementById('evcalc-item-suggestions');
+  const list = heldItemList();
+  if (!list) {
+    el.innerHTML = '<div><span class="loading"></span> Loading items…</div>';
+    el.style.display = 'block';
     return;
   }
-  const groups = {};
-  ITEM_INDEX.filter(isHeldItem).forEach(it => {
-    const g = it.pocket === 'berries' ? 'Berries' : formatSlug(it.category);
-    (groups[g] = groups[g] || []).push(it);
-  });
-  const order = Object.keys(groups).sort((a, b) =>
-    a === 'Held Items' ? -1 : b === 'Held Items' ? 1 : a.localeCompare(b));
-  sel.innerHTML = '<option value="">(none)</option>' + order.map(g =>
-    `<optgroup label="${g}">${groups[g].slice().sort((a, b) => a.name.localeCompare(b.name)).map(it =>
-      `<option value="${it.name}">${itemDisplayName(it.name)}</option>`).join('')}</optgroup>`).join('');
-  if (cur && !sel.querySelector(`option[value="${cur}"]`)) {
-    sel.insertAdjacentHTML('afterbegin', `<option value="${cur}">${itemDisplayName(cur)}</option>`);
+  const nq = normalize(q || '');
+  let matches;
+  if (!nq) {
+    const byName = Object.fromEntries(list.map(it => [it.name, it]));
+    matches = EVCALC_COMMON_ITEMS.map(n => byName[n]).filter(Boolean);
+  } else {
+    matches = [];
+    // Prefix matches first so "choice" lists the Choice items before e.g. "Lucky Punch".
+    for (const pass of [n => n.startsWith(nq), n => n.includes(nq)]) {
+      for (const it of list) {
+        if (matches.length >= 15) break;
+        if (matches.includes(it)) continue;
+        if (pass(normalize(it.name)) || pass(normalize(itemDisplayName(it.name)))) matches.push(it);
+      }
+    }
   }
-  sel.value = cur;
+  if (!matches.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = matches.map(it => {
+    const mod = ITEM_STAT_MODS[it.name];
+    const modTxt = mod ? DMG_STAT_KEYS.filter(k => mod[k]).map(k => `${DMG_STAT_LABELS[k]} ×${mod[k]}`).join(' ') : '';
+    return `<div data-name="${it.name}">
+      <img src="${itemSpriteUrl(it.name)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+      <span>${itemDisplayName(it.name)}</span>
+      ${modTxt ? `<span class="evcalc-item-mod">${modTxt}</span>` : ''}
+      <small>${it.pocket === 'berries' ? 'Berry' : formatSlug(it.category)}</small>
+    </div>`;
+  }).join('');
+  el.style.display = 'block';
+}
+
+function pickEvcalcItem(name) {
+  EVCALC_STATE.item = name || '';
+  saveEvcalcState();
+  updateEvcalcItems();
+  renderEvcalcItemPreview();
+  renderEvcalcStats();
+  renderEvcalcResult();
 }
 
 async function renderEvcalcItemPreview() {
   const el = document.getElementById('evcalc-item-preview');
+  const noteEl = document.getElementById('evcalc-item-note');
   const name = EVCALC_STATE.item;
+  const mods = itemStatMods(name, EVCALC_MON, EVCALC_CAN_EVOLVE);
+  noteEl.textContent = mods.note;
+  noteEl.classList.toggle('off', !mods.active);
   if (!name) { el.innerHTML = ''; return; }
   el.innerHTML = `<img src="${itemSpriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'"><span>${itemDisplayName(name)}</span>`;
   try {
@@ -9941,9 +10081,10 @@ function renderEvcalcStats() {
   const s = EVCALC_STATE;
   const mon = EVCALC_MON;
   const nature = getNature(s.nature);
+  const { mults } = itemStatMods(s.item, mon, EVCALC_CAN_EVOLVE);
   document.getElementById('evcalc-stats').innerHTML = DMG_STAT_KEYS.map(k => {
     const base = baseStatOf(mon, k);
-    const final = mon ? calcStat(base, s.ivs[k], s.evs[k], s.level, s.nature, k) : 0;
+    const final = mon ? evcalcFinalCell(calcStat(base, s.ivs[k], s.evs[k], s.level, s.nature, k), mults[k]) : '—';
     const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
     return `<div class="evcalc-stat-row ${cls}">
       <span class="evcalc-stat-label">${DMG_STAT_LABELS[k]}</span>
@@ -9951,10 +10092,16 @@ function renderEvcalcStats() {
       <input type="number" data-stat="${k}" data-field="iv" min="0" max="31" value="${s.ivs[k]}" aria-label="${DMG_STAT_LABELS[k]} IV">
       <input type="range" data-stat="${k}" data-field="ev-range" min="0" max="${EV_MAX_STAT}" step="4" value="${s.evs[k]}" aria-label="${DMG_STAT_LABELS[k]} EV slider">
       <input type="number" data-stat="${k}" data-field="ev" min="0" max="${EV_MAX_STAT}" step="4" value="${s.evs[k]}" aria-label="${DMG_STAT_LABELS[k]} EV">
-      <span class="evcalc-stat-final">${final || '—'}</span>
+      <span class="evcalc-stat-final">${final}</span>
     </div>`;
   }).join('');
   renderEvcalcBudget();
+}
+
+// Final-stat cell: the item-modified value with a small "×1.5" marker when an item applies.
+function evcalcFinalCell(raw, mult) {
+  if (!mult) return String(raw);
+  return `${Math.floor(raw * mult)}<small>×${mult}</small>`;
 }
 
 // Showdown-style set text for the current build.
@@ -9986,11 +10133,12 @@ function renderEvcalcResult() {
     return;
   }
   toTeam.disabled = false; copy.disabled = false;
-  const finals = evcalcFinalStats(mon, s);
+  const finals = evcalcFinalStats(mon, s, EVCALC_CAN_EVOLVE);
+  const { mults } = itemStatMods(s.item, mon, EVCALC_CAN_EVOLVE);
   const nature = getNature(s.nature);
   summary.innerHTML = DMG_STAT_KEYS.map(k => {
     const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
-    return `<div class="${cls}"><strong>${DMG_STAT_LABELS[k]}</strong><span>${finals[k]}</span></div>`;
+    return `<div class="${cls}"><strong>${DMG_STAT_LABELS[k]}</strong><span>${finals[k]}</span>${mults[k] ? `<small>×${mults[k]}</small>` : ''}</div>`;
   }).join('');
   exportEl.textContent = evcalcSetText(s);
   const onTeam = team.includes(mon.name);
@@ -10144,10 +10292,31 @@ function initEvcalc() {
     EVCALC_STATE.ability = e.target.value;
     saveEvcalcState(); renderEvcalcResult();
   });
-  document.getElementById('evcalc-item').addEventListener('change', e => {
-    EVCALC_STATE.item = e.target.value;
-    saveEvcalcState(); renderEvcalcItemPreview(); renderEvcalcResult();
+  // Held item: searchable picker
+  const itemInput = document.getElementById('evcalc-item');
+  const itemSuggest = document.getElementById('evcalc-item-suggestions');
+  itemInput.addEventListener('input', () => renderEvcalcItemSuggestions(itemInput.value));
+  itemInput.addEventListener('focus', () => { itemInput.select(); renderEvcalcItemSuggestions(itemInput.value); });
+  itemInput.addEventListener('blur', () => setTimeout(() => { itemSuggest.style.display = 'none'; updateEvcalcItems(); }, 150));
+  itemInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const first = itemSuggest.querySelector('[data-name]');
+      if (first) { e.preventDefault(); pickEvcalcItem(first.dataset.name); itemSuggest.style.display = 'none'; itemInput.blur(); }
+    } else if (e.key === 'Escape') {
+      itemSuggest.style.display = 'none';
+      updateEvcalcItems();
+    }
   });
+  itemSuggest.addEventListener('mousedown', e => {
+    const row = e.target.closest('[data-name]');
+    if (!row) return;
+    e.preventDefault();
+    pickEvcalcItem(row.dataset.name);
+    itemSuggest.style.display = 'none';
+  });
+  document.getElementById('evcalc-item-clear').addEventListener('click', () => pickEvcalcItem(''));
+  // Once the item index arrives, refresh an open suggestion list that was showing "Loading…".
+  loadItemIndex().then(() => { if (itemSuggest.style.display !== 'none') renderEvcalcItemSuggestions(itemInput.value); }).catch(() => {});
 
   // IV / EV inputs are delegated — the rows re-render whenever the species changes.
   const stats = document.getElementById('evcalc-stats');
@@ -10167,9 +10336,12 @@ function initEvcalc() {
     saveEvcalcState();
     // Patch the row in place instead of re-rendering so the input keeps focus.
     const finalEl = row.querySelector('.evcalc-stat-final');
-    if (finalEl) finalEl.textContent = EVCALC_MON
-      ? calcStat(baseStatOf(EVCALC_MON, k), EVCALC_STATE.ivs[k], EVCALC_STATE.evs[k], EVCALC_STATE.level, EVCALC_STATE.nature, k)
-      : '—';
+    if (finalEl) {
+      const { mults } = itemStatMods(EVCALC_STATE.item, EVCALC_MON, EVCALC_CAN_EVOLVE);
+      finalEl.innerHTML = EVCALC_MON
+        ? evcalcFinalCell(calcStat(baseStatOf(EVCALC_MON, k), EVCALC_STATE.ivs[k], EVCALC_STATE.evs[k], EVCALC_STATE.level, EVCALC_STATE.nature, k), mults[k])
+        : '—';
+    }
     renderEvcalcBudget();
     renderEvcalcResult();
   });
@@ -10226,15 +10398,23 @@ function teamSlotBuildBadge(name) {
   return `<span class="team-slot-build" title="Saved build${b.item ? ` — ${itemDisplayName(b.item)}` : ''}">${inner}</span>`;
 }
 
-function renderTeamBuilds(mons) {
+async function renderTeamBuilds(mons) {
   const el = document.getElementById('team-builds');
   const withBuild = team.filter(n => TEAM_BUILDS[n]);
   if (!withBuild.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = '';
+  const canEvolve = {};
+  await Promise.all(withBuild.map(async name => {
+    const mon = mons.find(m => m.name === name);
+    if (mon && TEAM_BUILDS[name].item && ITEM_STAT_MODS[TEAM_BUILDS[name].item] && ITEM_STAT_MODS[TEAM_BUILDS[name].item].nfe) {
+      canEvolve[name] = await canSpeciesEvolve(mon);
+    }
+  }));
   el.innerHTML = withBuild.map(name => {
     const b = TEAM_BUILDS[name];
     const mon = mons.find(m => m.name === name) || null;
-    const finals = mon ? evcalcFinalStats(mon, b) : null;
+    const finals = mon ? evcalcFinalStats(mon, b, canEvolve[name]) : null;
+    const { mults } = itemStatMods(b.item, mon, canEvolve[name]);
     const nature = getNature(b.nature);
     return `<div class="team-build-card" data-name="${name}">
       <div class="team-build-head">
@@ -10250,7 +10430,7 @@ function renderTeamBuilds(mons) {
       </div>
       <div class="team-build-stats">${DMG_STAT_KEYS.map(k => {
         const cls = nature[1] === k ? 'boosted' : nature[2] === k ? 'reduced' : '';
-        return `<div class="${cls}" title="${DMG_STAT_LABELS[k]}: ${b.evs[k] || 0} EVs, ${b.ivs[k]} IVs"><strong>${DMG_STAT_LABELS[k]}</strong>${finals ? finals[k] : '—'}<em>${b.evs[k] || 0} / ${b.ivs[k]}</em></div>`;
+        return `<div class="${cls}" title="${DMG_STAT_LABELS[k]}: ${b.evs[k] || 0} EVs, ${b.ivs[k]} IVs"><strong>${DMG_STAT_LABELS[k]}</strong>${finals ? finals[k] : '—'}${mults[k] ? `<small>×${mults[k]}</small>` : ''}<em>${b.evs[k] || 0} / ${b.ivs[k]}</em></div>`;
       }).join('')}</div>
       <div class="team-build-legend">final stat · EVs / IVs</div>
       <div class="team-build-actions">
