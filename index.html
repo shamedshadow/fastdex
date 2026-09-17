@@ -2660,6 +2660,18 @@
   .evcalc-item-note.off { color: var(--text-muted); }
   .evcalc-item-note:empty { display: none; }
   .evcalc-stat-final small, .evcalc-summary small, .team-build-stats small { display: block; font-size: 9px; font-weight: 500; color: #ff9e5e; }
+  .evcalc-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 600px) { .evcalc-moves { grid-template-columns: minmax(0, 1fr); } }
+  .evcalc-move-row { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .evcalc-move-row .damage-move-wrap input { padding-right: 26px; }
+  .evcalc-move-info { font-size: 11px; color: var(--text-muted); display: flex; gap: 6px; align-items: center; min-height: 16px; flex-wrap: wrap; }
+  .evcalc-move-info .type-pill { font-size: 9px; padding: 1px 6px; }
+  .evcalc-move-suggest-meta { color: var(--text-muted); font-size: 11px; margin-left: auto; white-space: nowrap; }
+  .evcalc-move-suggest-meta .type-pill { font-size: 9px; padding: 1px 5px; margin-left: 4px; }
+  .damage-move-suggestions div { display: flex; align-items: center; gap: 6px; }
+  .team-build-moves { display: flex; flex-wrap: wrap; gap: 4px; }
+  .team-build-moves .type-pill { font-size: 10px; padding: 1px 7px; text-transform: none; }
+  .team-build-moves .muted { font-size: 11px; }
   .evcalc-item-preview img { width: 24px; height: 24px; image-rendering: pixelated; flex-shrink: 0; }
   .evcalc-budget { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
   .evcalc-budget strong { color: var(--text); }
@@ -3155,6 +3167,8 @@
           <div class="evcalc-stats-head"><span>Stat</span><span>Base</span><span>IV</span><span>EV</span><span></span><span>Final</span></div>
           <div id="evcalc-stats"></div>
         </div>
+        <h4>Moves</h4>
+        <div class="evcalc-moves" id="evcalc-moves"></div>
         <div class="evcalc-actions">
           <button class="team-action-btn" id="evcalc-max-ivs" type="button" title="Set every IV to 31">Max IVs</button>
           <button class="team-action-btn" id="evcalc-zero-evs" type="button" title="Set every EV to 0">Clear EVs</button>
@@ -4269,11 +4283,15 @@ function defaultEvcalcState() {
     name: '', level: 50, nature: 'Hardy', ability: '', item: '',
     ivs: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
     evs: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
+    moves: ['', '', '', ''],
   };
 }
 let EVCALC_STATE = (() => {
   const s = lsGet(CK.evcalcState);
-  return (s && s.ivs && s.evs) ? Object.assign(defaultEvcalcState(), s) : defaultEvcalcState();
+  const st = (s && s.ivs && s.evs) ? Object.assign(defaultEvcalcState(), s) : defaultEvcalcState();
+  if (!Array.isArray(st.moves)) st.moves = ['', '', '', ''];
+  while (st.moves.length < 4) st.moves.push('');
+  return st;
 })();
 function saveEvcalcState() { lsSet(CK.evcalcState, EVCALC_STATE); }
 let CATCH_DATA = (() => { const c = lsGet(CK.catch); return (c && typeof c === 'object' && !Array.isArray(c)) ? c : {}; })();
@@ -6051,7 +6069,7 @@ async function renderTeam() {
     if (rolesEl && bm && bm.built) rolesEl.innerHTML = detectRoles(m, bm.effBase).map(r => `<span class="team-slot-role">${r}</span>`).join(' ');
   });
   renderTeamScore(mons, bs);
-  renderTeamAnalysis(mons);
+  renderTeamAnalysis(mons, bs);
   renderTeamBuilds(mons, bs);
 }
 
@@ -6087,9 +6105,29 @@ async function computeTeamBuildStats(mons) {
       const neutral = calcStat(base, 31, 0, out.level, 'Hardy', k);
       effBase[k] = neutral ? Math.round(base * finals[k] / neutral) : base;
     });
-    out.members[m.name] = { built: !!b, build: b, finals, mults: mods.mults, itemActive: mods.active, itemNote: mods.note, effBase, canEvolve };
+    // Moves: load their data so coverage can use real attack types instead of assuming STAB.
+    let moves = [];
+    if (b && Array.isArray(b.moves) && b.moves.length) {
+      moves = (await Promise.all(b.moves.map(n => getMove(n).catch(() => null)))).filter(Boolean);
+    }
+    const damaging = moves.filter(mv => mv.power && (mv.damage_class === 'physical' || mv.damage_class === 'special'));
+    const attackTypes = damaging.length ? Array.from(new Set(damaging.map(mv => mv.type))) : m.types.slice();
+    out.members[m.name] = {
+      built: !!b, build: b, finals, mults: mods.mults, itemActive: mods.active, itemNote: mods.note, effBase, canEvolve,
+      moves, damaging, attackTypes, fromMoves: damaging.length > 0,
+    };
   }));
   return out;
+}
+
+// Attack types the team can actually throw: damaging moves where a moveset is saved, else the member's own types.
+function teamAttackTypes(mons, bs) {
+  const set = new Set();
+  mons.forEach(m => {
+    const bm = bs && bs.members[m.name];
+    (bm ? bm.attackTypes : m.types).forEach(t => set.add(t));
+  });
+  return set;
 }
 
 function renderTeamScore(mons, bs) {
@@ -6108,8 +6146,10 @@ function renderTeamScore(mons, bs) {
   const sharedCount = shared.reduce((s, r) => s + r.hits - 1, 0);
   const bigShared = shared.filter(r => r.hits >= 3).length;
 
+  const attackTypes = teamAttackTypes(mons, bs);
+  const movesetCount = bs ? mons.filter(m => bs.members[m.name] && bs.members[m.name].fromMoves).length : 0;
   const seCoverage = ALL_TYPES.filter(def => {
-    for (const atk of teamTypes) if (multVsTypes(atk, [def]) === 2) return true;
+    for (const atk of attackTypes) if (multVsTypes(atk, [def]) === 2) return true;
     return false;
   }).length;
 
@@ -6148,7 +6188,7 @@ function renderTeamScore(mons, bs) {
   breakdown.push({
     good: seCoverage >= 14,
     bad: seCoverage < 8,
-    label: `STAB hits ${seCoverage}/18 types`,
+    label: `${movesetCount ? 'Coverage' : 'STAB'} hits ${seCoverage}/18 types${movesetCount ? ` (${movesetCount} moveset${movesetCount > 1 ? 's' : ''})` : ''}`,
     pts: covPts,
   });
 
@@ -6215,6 +6255,13 @@ function renderTeamScore(mons, bs) {
         itemCounts[b.item] = (itemCounts[b.item] || 0) + 1;
         if (ITEM_STAT_MODS[b.item] && !bm(n).itemActive) issues.push(`${displayName(n)}: ${itemDisplayName(b.item)} does nothing here`);
       }
+      // Attacking investment should match the moves' category.
+      const dmg = bm(n).damaging || [];
+      if (dmg.length) {
+        const phys = dmg.some(mv => mv.damage_class === 'physical'), spec = dmg.some(mv => mv.damage_class === 'special');
+        if (b.evs.atk >= 100 && !phys && spec) issues.push(`${displayName(n)}: Atk invested but all attacks are special`);
+        if (b.evs.spa >= 100 && !spec && phys) issues.push(`${displayName(n)}: SpA invested but all attacks are physical`);
+      }
     });
     Object.keys(itemCounts).filter(i => itemCounts[i] > 1).forEach(i => issues.push(`${itemCounts[i]}× ${itemDisplayName(i)} (item clause)`));
     const choiceLocked = builtNames.filter(n => /^choice-/.test(bm(n).build.item || '')).length;
@@ -6273,7 +6320,7 @@ function multVsTypes(atk, defTypes) {
   return m;
 }
 
-function renderTeamAnalysis(mons) {
+function renderTeamAnalysis(mons, bs) {
   const el = document.getElementById('team-analysis');
   if (!mons || mons.length === 0) {
     el.innerHTML = '';
@@ -6287,8 +6334,8 @@ function renderTeamAnalysis(mons) {
     .map(r => ({ type: r.atk, count: r.cells.filter(c => c >= 2).length, total: r.cells.reduce((s, c) => s + c, 0) }))
     .filter(r => r.count >= 2)
     .sort((a, b) => b.count - a.count || b.total - a.total);
-  const teamTypes = new Set();
-  mons.forEach(m => m.types.forEach(t => teamTypes.add(t)));
+  const teamTypes = teamAttackTypes(mons, bs);
+  const movesetMons = bs ? mons.filter(m => bs.members[m.name] && bs.members[m.name].fromMoves) : [];
   const offCoverage = {};
   ALL_TYPES.forEach(def => {
     let best = 0;
@@ -6345,15 +6392,17 @@ function renderTeamAnalysis(mons) {
       </table>
     </div>
     <div class="analysis-block">
-      <h4 class="analysis-title">Offensive coverage (STAB)</h4>
-      <div class="analysis-hint">Based on the team's types. Actual movesets may add more coverage.</div>
-      <div><strong>Team types:</strong> <span class="team-coverage-list">${[...teamTypes].sort().map(typePill).join('')}</span></div>
+      <h4 class="analysis-title">Offensive coverage${movesetMons.length ? ' (movesets + STAB)' : ' (STAB)'}</h4>
+      <div class="analysis-hint">${movesetMons.length
+        ? `Uses the damaging moves saved for ${movesetMons.map(m => displayName(m.name)).join(', ')}; other members are assumed to carry STAB.`
+        : 'Based on the team\'s types. Save movesets in the EV/IV calc for real coverage.'}</div>
+      <div><strong>Attack types:</strong> <span class="team-coverage-list">${[...teamTypes].sort().map(typePill).join('')}</span></div>
       <div style="margin-top:8px"><strong>Hits 2×:</strong> <span class="team-coverage-list">${pillList(seTypes)}</span></div>
       <div style="margin-top:8px"><strong>Hits 1×:</strong> <span class="team-coverage-list">${pillList(neutTypes)}</span></div>
     </div>
     <div class="analysis-block">
       <h4 class="analysis-title">Coverage gaps</h4>
-      <div class="analysis-hint">Types no team member can hit super-effectively with STAB.</div>
+      <div class="analysis-hint">Types no team member can hit super-effectively.</div>
       <div class="team-coverage-list">${pillList(gaps)}</div>
     </div>
   `;
@@ -9394,6 +9443,7 @@ function encodeBuild(b) {
   if (b.item) parts.push(`i:${b.item}`);
   if (DMG_STAT_KEYS.some(k => b.evs[k])) parts.push(`ev:${DMG_STAT_KEYS.map(k => b.evs[k] || 0).join('/')}`);
   if (DMG_STAT_KEYS.some(k => b.ivs[k] !== 31)) parts.push(`iv:${DMG_STAT_KEYS.map(k => b.ivs[k]).join('/')}`);
+  if (b.moves && b.moves.length) parts.push(`m:${b.moves.join('/')}`);
   return parts.join(';');
 }
 
@@ -9423,6 +9473,7 @@ function decodeBuild(spec) {
     else if (key === 'i') b.item = slug(val);
     else if (key === 'ev') { const s = stats(val, EV_MAX_STAT); if (s && evTotal(s) <= EV_MAX_TOTAL) b.evs = s; }
     else if (key === 'iv') { const s = stats(val, 31); if (s) b.ivs = s; }
+    else if (key === 'm') b.moves = val.split('/').map(slug).filter(Boolean).slice(0, 4);
   }
   return b;
 }
@@ -10091,10 +10142,126 @@ async function pickEvcalcSpecies(name) {
   EVCALC_STATE.name = name;
   EVCALC_STATE.ability = '';
   EVCALC_SOLVED = null;
-  saveEvcalcState();
   EVCALC_MON = null;
   await ensureEvcalcMon();
+  // Keep moves the new species can actually learn; drop the rest.
+  const learnable = evcalcLearnset();
+  EVCALC_STATE.moves = EVCALC_STATE.moves.map(m => (m && learnable.has(m)) ? m : '');
+  saveEvcalcState();
   renderEvcalc();
+}
+
+// ---- EV/IV calc: moves ----
+function evcalcLearnset() {
+  return new Set(EVCALC_MON && EVCALC_MON.moves ? EVCALC_MON.moves.map(m => m.name) : []);
+}
+
+function moveMetaHtml(info) {
+  if (!info) return '';
+  const cls = info.damage_class || 'status';
+  const bp = info.power ? ` · ${info.power} BP` : '';
+  return `${typePill(info.type || 'normal')}<span>${formatSlug(cls)}${bp}</span>`;
+}
+
+function renderEvcalcMoves() {
+  const el = document.getElementById('evcalc-moves');
+  const mon = EVCALC_MON;
+  el.innerHTML = EVCALC_STATE.moves.map((m, i) => `
+    <div class="evcalc-move-row" data-slot="${i}">
+      <div class="damage-move-wrap evcalc-item-wrap">
+        <input type="text" data-move-slot="${i}" placeholder="${mon ? `Move ${i + 1}…` : 'Pick a species first…'}" autocomplete="off" spellcheck="false" value="${m ? formatSlug(m) : ''}" ${mon ? '' : 'disabled'}>
+        <button type="button" class="evcalc-item-clear" data-move-clear="${i}" title="Remove move" aria-label="Remove move" ${m ? '' : 'style="display:none"'}>×</button>
+        <div class="damage-move-suggestions" data-move-suggest="${i}" style="display:none"></div>
+      </div>
+      <div class="evcalc-move-info" data-move-info="${i}"></div>
+    </div>`).join('');
+  EVCALC_STATE.moves.forEach((m, i) => { if (m) renderEvcalcMoveInfo(i); });
+}
+
+async function renderEvcalcMoveInfo(slot) {
+  const name = EVCALC_STATE.moves[slot];
+  const el = document.querySelector(`[data-move-info="${slot}"]`);
+  if (!el || !name) return;
+  const cached = lsGet(CK.move(name));
+  if (cached) { el.innerHTML = moveMetaHtml(cached); return; }
+  el.innerHTML = '<span class="muted">Loading…</span>';
+  try {
+    const info = await getMove(name);
+    if (EVCALC_STATE.moves[slot] === name && el.isConnected) el.innerHTML = moveMetaHtml(info);
+  } catch { if (el.isConnected) el.innerHTML = ''; }
+}
+
+function renderEvcalcMoveSuggestions(slot, q) {
+  const el = document.querySelector(`[data-move-suggest="${slot}"]`);
+  if (!el) return;
+  const learnset = evcalcLearnset();
+  if (!learnset.size) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const taken = new Set(EVCALC_STATE.moves.filter((m, i) => m && i !== slot));
+  const nq = normalize(q || '');
+  const all = Array.from(learnset).filter(n => !taken.has(n)).sort();
+  const matches = [];
+  for (const pass of [n => n.startsWith(nq), n => n.includes(nq)]) {
+    for (const n of all) {
+      if (matches.length >= 20) break;
+      if (matches.includes(n)) continue;
+      if (!nq || pass(normalize(n))) matches.push(n);
+    }
+    if (!nq) break;
+  }
+  if (!matches.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = matches.map(n => {
+    const info = lsGet(CK.move(n));
+    const meta = info ? `<span class="evcalc-move-suggest-meta">${info.power ? `${info.power} BP` : formatSlug(info.damage_class || 'status')}${typePill(info.type || 'normal')}</span>` : '';
+    return `<div data-name="${n}"><span>${formatSlug(n)}</span>${meta}</div>`;
+  }).join('');
+  el.style.display = 'block';
+}
+
+function pickEvcalcMove(slot, name) {
+  EVCALC_STATE.moves[slot] = name || '';
+  saveEvcalcState();
+  renderEvcalcMoves();
+  renderEvcalcResult();
+}
+
+function initEvcalcMoves() {
+  const wrap = document.getElementById('evcalc-moves');
+  const slotOf = t => { const inp = t.closest('[data-move-slot]'); return inp ? +inp.dataset.moveSlot : null; };
+  wrap.addEventListener('input', e => { const s = slotOf(e.target); if (s != null) renderEvcalcMoveSuggestions(s, e.target.value); });
+  wrap.addEventListener('focusin', e => { const s = slotOf(e.target); if (s != null) { e.target.select(); renderEvcalcMoveSuggestions(s, e.target.value); } });
+  wrap.addEventListener('focusout', e => {
+    const s = slotOf(e.target);
+    if (s == null) return;
+    setTimeout(() => {
+      const sug = document.querySelector(`[data-move-suggest="${s}"]`);
+      if (sug) sug.style.display = 'none';
+      const cur = EVCALC_STATE.moves[s];
+      if (e.target.isConnected) e.target.value = cur ? formatSlug(cur) : '';
+    }, 150);
+  });
+  wrap.addEventListener('keydown', e => {
+    const s = slotOf(e.target);
+    if (s == null) return;
+    const sug = document.querySelector(`[data-move-suggest="${s}"]`);
+    if (e.key === 'Enter') {
+      const first = sug && sug.querySelector('[data-name]');
+      if (first) { e.preventDefault(); pickEvcalcMove(s, first.dataset.name); }
+    } else if (e.key === 'Escape') {
+      if (sug) sug.style.display = 'none';
+      e.target.blur();
+    }
+  });
+  wrap.addEventListener('mousedown', e => {
+    const row = e.target.closest('[data-name]');
+    const sug = e.target.closest('[data-move-suggest]');
+    if (!row || !sug) return;
+    e.preventDefault();
+    pickEvcalcMove(+sug.dataset.moveSuggest, row.dataset.name);
+  });
+  wrap.addEventListener('click', e => {
+    const clr = e.target.closest('[data-move-clear]');
+    if (clr) pickEvcalcMove(+clr.dataset.moveClear, '');
+  });
 }
 
 function populateEvcalcSelects() {
@@ -10274,6 +10441,7 @@ function evcalcSetText(s) {
   if (evs.length) lines.push(`EVs: ${evs.join(' / ')}`);
   lines.push(`${s.nature} Nature`);
   if (ivs.length) lines.push(`IVs: ${ivs.join(' / ')}`);
+  (s.moves || []).filter(Boolean).forEach(m => lines.push(`- ${formatSlug(m)}`));
   return lines.join('\n');
 }
 
@@ -10370,6 +10538,7 @@ function renderEvcalc() {
   updateEvcalcItems();
   renderEvcalcItemPreview();
   renderEvcalcStats();
+  renderEvcalcMoves();
   renderEvcalcSolver();
   renderEvcalcResult();
 }
@@ -10392,6 +10561,7 @@ function exportEvcalcToTeam() {
   TEAM_BUILDS[mon.name] = {
     level: s.level, nature: s.nature, ability: s.ability, item: s.item,
     ivs: Object.assign({}, s.ivs), evs: Object.assign({}, s.evs),
+    moves: (s.moves || []).filter(Boolean),
   };
   saveTeamBuilds();
   saveTeam();
@@ -10407,6 +10577,7 @@ function loadBuildIntoEvcalc(name) {
     name, level: b.level, nature: b.nature, ability: b.ability, item: b.item,
     ivs: Object.assign({ hp:31, atk:31, def:31, spa:31, spd:31, spe:31 }, b.ivs),
     evs: Object.assign({ hp:0, atk:0, def:0, spa:0, spd:0, spe:0 }, b.evs),
+    moves: (b.moves || []).slice(0, 4).concat(['', '', '', '']).slice(0, 4),
   });
   EVCALC_SOLVED = null;
   EVCALC_MON = null;
@@ -10418,6 +10589,7 @@ function initEvcalc() {
   if (evcalcInit) return;
   evcalcInit = true;
   populateEvcalcSelects();
+  initEvcalcMoves();
 
   const input = document.getElementById('evcalc-species');
   const suggestions = document.getElementById('evcalc-suggestions');
@@ -10581,6 +10753,10 @@ function renderTeamBuilds(mons, bs) {
         return `<div class="${cls}" title="${DMG_STAT_LABELS[k]}: ${b.evs[k] || 0} EVs, ${b.ivs[k]} IVs"><strong>${DMG_STAT_LABELS[k]}</strong>${finals ? finals[k] : '—'}${mults[k] ? `<small>×${mults[k]}</small>` : ''}<em>${b.evs[k] || 0} / ${b.ivs[k]}</em></div>`;
       }).join('')}</div>
       <div class="team-build-legend">final stat · EVs / IVs</div>
+      ${(b.moves && b.moves.length) ? `<div class="team-build-moves">${b.moves.map(mv => {
+        const info = bs && bs.members[name] && (bs.members[name].moves || []).find(x => x.name === mv);
+        return `<span class="type-pill t-${info ? info.type : 'normal'}" title="${info ? `${formatSlug(info.damage_class || 'status')}${info.power ? ` · ${info.power} BP` : ''}` : ''}">${formatSlug(mv)}</span>`;
+      }).join('')}</div>` : '<div class="team-build-moves"><span class="muted">No moves set</span></div>'}
       <div class="team-build-actions">
         <button class="team-action-btn" type="button" data-edit-build="${name}">✎ Edit in EV/IV calc</button>
         <button class="team-action-btn" type="button" data-remove-build="${name}">Remove build</button>
