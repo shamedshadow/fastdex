@@ -3424,18 +3424,74 @@ const TYPE_CHART = {
 };
 const ALL_TYPES = Object.keys(TYPE_CHART);
 
+// Abilities that change type matchups on top of the chart.
 const ABILITY_EFFECTS = {
-  'levitate':      { immune: ['ground'] },
-  'thick-fat':     { half:   ['fire', 'ice'] },
-  'water-absorb':  { immune: ['water'] },
-  'storm-drain':   { immune: ['water'] },
-  'dry-skin':      { immune: ['water'] },
-  'volt-absorb':   { immune: ['electric'] },
-  'motor-drive':   { immune: ['electric'] },
-  'lightning-rod': { immune: ['electric'] },
-  'flash-fire':    { immune: ['fire'] },
-  'sap-sipper':    { immune: ['grass'] },
+  'levitate':        { immune: ['ground'] },
+  'earth-eater':     { immune: ['ground'] },
+  'water-absorb':    { immune: ['water'] },
+  'storm-drain':     { immune: ['water'] },
+  'dry-skin':        { immune: ['water'] },
+  'volt-absorb':     { immune: ['electric'] },
+  'motor-drive':     { immune: ['electric'] },
+  'lightning-rod':   { immune: ['electric'] },
+  'flash-fire':      { immune: ['fire'] },
+  'well-baked-body': { immune: ['fire'] },
+  'sap-sipper':      { immune: ['grass'] },
+  'thick-fat':       { half:   ['fire', 'ice'] },
+  'heatproof':       { half:   ['fire'] },
+  'water-bubble':    { half:   ['fire'] },
+  'purifying-salt':  { half:   ['ghost'] },
+  'fluffy':          { weak:   ['fire'] },
+  'wonder-guard':    { onlySE: true },
 };
+// Held items that change type matchups.
+const ITEM_MATCHUP_EFFECTS = {
+  'air-balloon': { immune: ['ground'] },
+  'iron-ball':   { grounded: true },          // Ground hits Flying / Levitate / Air Balloon holders
+  'ring-target': { ignoreImmunities: true },  // type-chart immunities no longer apply
+};
+
+// Damage multiplier for every attacking type against a defender with these types, ability and item.
+function defensiveMultipliers(types, abilities, item) {
+  const mult = {};
+  ALL_TYPES.forEach(t => { mult[t] = 1; });
+  const itemEff = ITEM_MATCHUP_EFFECTS[item] || {};
+  const grounded = !!itemEff.grounded;
+  (types || []).forEach(defType => {
+    const chart = TYPE_CHART[String(defType).toLowerCase()];
+    if (!chart) return;
+    chart.weak.forEach(t => { mult[t] *= 2; });
+    chart.resist.forEach(t => { mult[t] *= 0.5; });
+    chart.immune.forEach(t => {
+      if (itemEff.ignoreImmunities) return;
+      if (grounded && t === 'ground') return;
+      mult[t] = 0;
+    });
+  });
+  (abilities || []).forEach(ab => {
+    const eff = ABILITY_EFFECTS[ab];
+    if (!eff) return;
+    if (eff.immune) eff.immune.forEach(t => { if (!(grounded && t === 'ground')) mult[t] = 0; });
+    if (eff.half)   eff.half.forEach(t => { if (mult[t] !== 0) mult[t] *= 0.5; });
+    if (eff.weak)   eff.weak.forEach(t => { if (mult[t] !== 0) mult[t] *= 2; });
+    if (eff.onlySE) ALL_TYPES.forEach(t => { if (mult[t] < 2) mult[t] = 0; });
+  });
+  if (itemEff.immune && !grounded) itemEff.immune.forEach(t => { mult[t] = 0; });
+  return mult;
+}
+
+// The ability to assume for a Pokémon when none was chosen: its only ability, or, when it has
+// several, only if none of them (or all of them alike) change matchups. Otherwise null.
+function autoAbility(mon) {
+  const names = Array.from(new Set((mon && mon.abilities || []).map(a => a.name)));
+  if (!names.length) return null;
+  const effs = names.map(n => JSON.stringify(ABILITY_EFFECTS[n] || null));
+  return effs.every(e => e === effs[0]) ? names[0] : null;
+}
+// Abilities of this Pokémon that would change its matchups (used to hint that a choice matters).
+function matchupAbilities(mon) {
+  return Array.from(new Set((mon && mon.abilities || []).map(a => a.name))).filter(n => ABILITY_EFFECTS[n]);
+}
 
 const STAT_LABELS = {
   'hp': 'HP',
@@ -4174,6 +4230,8 @@ const DAMAGE_ITEMS = [
   { v:'metronome',      label:'Metronome (1st)', mult:1.0 },
   { v:'assault-vest',   label:'Assault Vest (def)', defSpecMult:1.5 },
   { v:'eviolite',       label:'Eviolite (def)',  defPhysMult:1.5, defSpecMult:1.5 },
+  { v:'air-balloon',    label:'Air Balloon (def, ground immune)' },
+  { v:'iron-ball',      label:'Iron Ball (def, grounded)' },
 ];
 
 // Abilities commonly affecting damage. Attacker-side and defender-side marked separately.
@@ -4697,31 +4755,16 @@ function formatOneEvoCondition(d) {
 }
 
 // ---- matchup math ----
-function calculateDefensive(types, abilities) {
-  const mult = {};
-  ALL_TYPES.forEach(t => mult[t] = 1);
-  types.forEach(defType => {
-    const chart = TYPE_CHART[defType.toLowerCase()];
-    if (!chart) return;
-    chart.weak.forEach(t => mult[t] *= 2);
-    chart.resist.forEach(t => mult[t] *= 0.5);
-    chart.immune.forEach(t => mult[t] *= 0);
-  });
-  abilities.forEach(ab => {
-    const eff = ABILITY_EFFECTS[ab];
-    if (!eff) return;
-    if (eff.immune) eff.immune.forEach(t => mult[t] = 0);
-    if (eff.half)   eff.half.forEach(t => { if (mult[t] !== 0) mult[t] *= 0.5; });
-    if (eff.weak)   eff.weak.forEach(t => { if (mult[t] !== 0) mult[t] *= 2; });
-  });
+function calculateDefensive(types, abilities, item) {
+  const mult = defensiveMultipliers(types, abilities, item);
   const groups = { '4': [], '2': [], '0.5': [], '0.25': [], '0': [] };
   ALL_TYPES.forEach(t => {
     const m = mult[t];
-    if (m === 4) groups['4'].push(t);
-    else if (m === 2) groups['2'].push(t);
-    else if (m === 0.5) groups['0.5'].push(t);
-    else if (m === 0.25) groups['0.25'].push(t);
+    if (m >= 4) groups['4'].push(t);
+    else if (m >= 2) groups['2'].push(t);
     else if (m === 0) groups['0'].push(t);
+    else if (m <= 0.25) groups['0.25'].push(t);
+    else if (m < 1) groups['0.5'].push(t);
   });
   return groups;
 }
@@ -6148,9 +6191,10 @@ function renderTeamScore(mons, bs) {
   mons.forEach(m => m.types.forEach(t => teamTypes.add(t)));
   const typeDiversity = teamTypes.size;
 
+  const defMults = mons.map(m => teamDefMults(m, bs));
   const shared = ALL_TYPES.map(atk => ({
     atk,
-    hits: mons.filter(m => multVsTypes(atk, m.types) >= 2).length,
+    hits: defMults.filter(d => d[atk] >= 2).length,
   })).filter(r => r.hits >= 2);
   const sharedCount = shared.reduce((s, r) => s + r.hits - 1, 0);
   const bigShared = shared.filter(r => r.hits >= 3).length;
@@ -6317,6 +6361,18 @@ function renderTeamScore(mons, bs) {
   `;
 }
 
+// Matchup context for a team member: the saved build's ability/item, else the species' only ability.
+function teamMatchupContext(m, bs) {
+  const bm = bs && bs.members[m.name];
+  const b = bm && bm.built ? bm.build : null;
+  const ability = (b && b.ability) || autoAbility(m);
+  return { ability, item: b ? (b.item || '') : '', fromBuild: !!(b && b.ability) };
+}
+function teamDefMults(m, bs) {
+  const ctx = teamMatchupContext(m, bs);
+  return defensiveMultipliers(m.types, ctx.ability ? [ctx.ability] : [], ctx.item);
+}
+
 function multVsTypes(atk, defTypes) {
   let m = 1;
   defTypes.forEach(def => {
@@ -6335,10 +6391,22 @@ function renderTeamAnalysis(mons, bs) {
     el.innerHTML = '';
     return;
   }
+  const defMults = mons.map(m => teamDefMults(m, bs));
   const rows = ALL_TYPES.map(atk => ({
     atk,
-    cells: mons.map(m => multVsTypes(atk, m.types)),
+    cells: defMults.map(d => d[atk]),
   }));
+  // Which abilities / items the matchups assume, and who still needs an ability picked.
+  const assumed = [];
+  const undecided = [];
+  mons.forEach(m => {
+    const ctx = teamMatchupContext(m, bs);
+    const bits = [];
+    if (ctx.ability && ABILITY_EFFECTS[ctx.ability]) bits.push(formatSlug(ctx.ability));
+    if (ctx.item && ITEM_MATCHUP_EFFECTS[ctx.item]) bits.push(itemDisplayName(ctx.item));
+    if (bits.length) assumed.push(`${displayName(m.name)} (${bits.join(', ')})`);
+    if (!ctx.ability && matchupAbilities(m).length) undecided.push(`${displayName(m.name)}: ${matchupAbilities(m).map(formatSlug).join(' / ')}`);
+  });
   const shared = rows
     .map(r => ({ type: r.atk, count: r.cells.filter(c => c >= 2).length, total: r.cells.reduce((s, c) => s + c, 0) }))
     .filter(r => r.count >= 2)
@@ -6376,8 +6444,11 @@ function renderTeamAnalysis(mons, bs) {
     if (v === 1) return '—';
     return v + '×';
   };
-  const headerSprites = mons.map(m =>
-    `<th title="${displayName(m.name)}"><img class="sprite sprite-sm" src="${spriteUrl(m.id, 'pixel', m.name)}" alt="" onerror="this.style.visibility='hidden'"></th>`).join('');
+  const headerSprites = mons.map(m => {
+    const ctx = teamMatchupContext(m, bs);
+    const extra = [ctx.ability && ABILITY_EFFECTS[ctx.ability] ? formatSlug(ctx.ability) : '', ctx.item && ITEM_MATCHUP_EFFECTS[ctx.item] ? itemDisplayName(ctx.item) : ''].filter(Boolean).join(', ');
+    return `<th title="${displayName(m.name)}${extra ? ` (${extra})` : ''}"><img class="sprite sprite-sm" src="${spriteUrl(m.id, 'pixel', m.name)}" alt="" onerror="this.style.visibility='hidden'"></th>`;
+  }).join('');
   const matrixRows = rows.map(r => {
     const cells = r.cells.map(v => `<td class="${cellCls(v)}">${cellText(v)}</td>`).join('');
     return `<tr><td class="attacker-cell">${typePill(r.atk)}</td>${cells}</tr>`;
@@ -6391,6 +6462,8 @@ function renderTeamAnalysis(mons, bs) {
       <h4 class="analysis-title">Shared weaknesses</h4>
       <div class="analysis-hint">Types that hit 2+ team members super-effectively. These are your real danger zones.</div>
       <div class="shared-row">${sharedHtml}</div>
+      ${assumed.length ? `<div class="analysis-hint" style="margin-top:8px">Accounts for: ${assumed.join(' · ')}.</div>` : ''}
+      ${undecided.length ? `<div class="analysis-hint" style="margin-top:4px">Ability not set, so matchups ignore it: ${undecided.join(' · ')}. Save a build from the EV/IV calc to pick one.</div>` : ''}
     </div>
     <div class="analysis-block wide">
       <h4 class="analysis-title">Defensive matrix</h4>
@@ -6505,8 +6578,11 @@ function buildCompareBody(a, b) {
     <span class="compare-stat-val b ${winTotalB}">${totalB}</span>
   </div>`;
 
-  const aVsB = a.types.reduce((m, t) => Math.max(m, multVsTypes(t, b.types)), 0);
-  const bVsA = b.types.reduce((m, t) => Math.max(m, multVsTypes(t, a.types)), 0);
+  const abilA = autoAbility(a), abilB = autoAbility(b);
+  const defOfA = defensiveMultipliers(a.types, abilA ? [abilA] : [], '');
+  const defOfB = defensiveMultipliers(b.types, abilB ? [abilB] : [], '');
+  const aVsB = a.types.reduce((m, t) => Math.max(m, defOfB[t]), 0);
+  const bVsA = b.types.reduce((m, t) => Math.max(m, defOfA[t]), 0);
   const classify = m => {
     if (m === 0) return { cls: 'bad', label: 'No effect' };
     if (m >= 2) return { cls: 'good', label: 'Super effective' };
@@ -6517,7 +6593,8 @@ function buildCompareBody(a, b) {
   const bBest = classify(bVsA);
 
   const defSummary = mon => {
-    const def = calculateDefensive(mon.types, []);
+    const abil = autoAbility(mon);
+    const def = calculateDefensive(mon.types, abil && ABILITY_EFFECTS[abil] ? [abil] : [], '');
     const make = (k, label) => def[k] && def[k].length ? `<div><span class="muted" style="font-size:11px">${label}:</span> ${def[k].map(typePill).join(' ')}</div>` : '';
     return make('4', '4× weak') + make('2', '2× weak') + make('0.5', '½× resist') + make('0.25', '¼× resist') + make('0', 'Immune');
   };
@@ -8365,10 +8442,17 @@ function calcDamage(atkMon, defMon, move, state) {
     atkStat = Math.floor(atkStat * 1.5);
   }
 
-  // Move type / immunities
-  if (atkAbilDef.groundImmune && move.type === 'ground') return { type:0, msg:'Immune: Levitate.' };
-  if (defAbilDef.groundImmune && move.type === 'ground') return { type:0, msg:'Immune: Levitate.' };
-  if (defAbilDef.typeImmune && move.type === defAbilDef.typeImmune) return { type:0, msg:`Immune: ${defAbilDef.label}.` };
+  // Type effectiveness, including the defender's ability and item (Levitate, Flash Fire, Air Balloon…).
+  const defTypes = defMon.types || [];
+  const chartMult = typeEffectiveness(move.type, defTypes);
+  const typeMult = defensiveMultipliers(defTypes, dSide.ability ? [dSide.ability] : [], dSide.item)[move.type];
+  if (typeMult === 0) {
+    if (chartMult !== 0) {
+      const why = (ABILITY_EFFECTS[dSide.ability] && dSide.ability) ? formatSlug(dSide.ability) : itemDisplayName(dSide.item || '');
+      return { type:0, msg:`Immune: ${why}.` };
+    }
+    return { type:0, msg:'No effect (type matchup).' };
+  }
 
   // Base power
   let basePower = move.power;
@@ -8400,8 +8484,6 @@ function calcDamage(atkMon, defMon, move, state) {
   if (field.weather === 'sun' && atkAbilDef.solarPower && isSpec) atkStat = Math.floor(atkStat * 1.5);
   // Dry Skin weakness to fire
   if (defAbilDef.weakFire && move.type === 'fire') basePower = Math.floor(basePower * defAbilDef.weakFire);
-  // Thick Fat
-  if (defAbilDef.thickFat && (move.type === 'fire' || move.type === 'ice')) basePower = Math.floor(basePower * 0.5);
 
   // Terrain (Gen 7+: 1.3x boost; we ignore grounded checks for simplicity)
   let terrainMult = 1;
@@ -8414,11 +8496,6 @@ function calcDamage(atkMon, defMon, move, state) {
   const atkTypes = atkMon.types || [];
   let stab = 1;
   if (atkTypes.includes(move.type)) stab = atkAbilDef.stab || 1.5;
-
-  // Type effectiveness
-  const defTypes = defMon.types || [];
-  const typeMult = typeEffectiveness(move.type, defTypes);
-  if (typeMult === 0) return { type:0, msg:'No effect (type matchup).' };
 
   // Filter / Solid Rock
   let filterMult = 1;
@@ -9110,6 +9187,8 @@ async function selectPokemon(name, { updateUrl = true } = {}) {
     const mon = await getMon(name);
     currentMon = mon;
     activeAbilities = new Set();
+    const assumed = autoAbility(mon);
+    if (assumed && ABILITY_EFFECTS[assumed]) activeAbilities.add(assumed);
     document.getElementById('pokemon-name').textContent = displayName(mon.name);
     document.getElementById('pokemon-types').innerHTML = mon.types.map(typePill).join('');
     document.getElementById('pokemon-id').textContent = `#${pad(mon.id)}`;
